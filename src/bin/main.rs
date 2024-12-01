@@ -11,7 +11,8 @@ use std::time::Instant;
 fn main() {
     let start = Instant::now();
     let parser = SessionParserConfig::default();
-    let r_files = vec!["foo.R", "foo2.R", "foo3.R"];
+    let r_files = vec!["foo2.R"];
+    // let r_files = vec!["foo.R", "foo2.R", "foo3.R"];
     let messages: Vec<Message> = r_files
         .par_iter()
         .map(|file| {
@@ -21,6 +22,9 @@ fn main() {
             buf_reader.read_to_string(&mut contents).unwrap();
             let ast = parser.parse_input(&contents);
             // let line_col = parser.parse_line_col(&contents);
+            // let my_ast = ast.clone().unwrap();
+            // println!("{:?}", my_ast);
+            // println!("{:?}", line_col);
             check_ast(ast.unwrap())
         })
         .flatten()
@@ -35,9 +39,10 @@ fn main() {
 
 fn check_ast(ast: Expr) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
+    println!("{}", ast);
     match ast {
         Expr::Call(fun, args) => {
-            if *fun == Expr::Symbol("any".to_string()) {
+            if *fun.clone() == Expr::Symbol("any".to_string()) {
                 if args.len() == 1 {
                     let arg = args.get(0).unwrap();
                     let _mybox = Box::new(Expr::Symbol("is.na".to_string()));
@@ -52,7 +57,12 @@ fn check_ast(ast: Expr) -> Vec<Message> {
                         _ => unreachable!(),
                     }
                 }
+                check_ast(*fun.clone());
             }
+            let _ = args.into_iter().map(|(_nm, val)| {
+                println!("{val}");
+                check_ast(val)
+            });
         }
         _ => println!("not an expr"),
     }
