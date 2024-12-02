@@ -39,11 +39,9 @@ impl fmt::Display for Message {
         match self {
             Message::TrueFalseSymbol { filename, location } => write!(
                 f,
-                "{}{}{}{}{}  {}\t{}",
+                "{} [{}:{}] {} {}",
                 filename.to_string_lossy().white().bold(),
-                ":  ".cyan(),
                 location.column,
-                ":".cyan(),
                 location.row,
                 self.code().red().bold(),
                 self.body()

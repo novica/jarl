@@ -1,33 +1,25 @@
-use air_r_parser::{parse, RParserOptions};
-use air_r_syntax::{RLanguage, RSyntaxKind, RSyntaxNode, TextSize};
+use air_r_parser::RParserOptions;
+use air_r_syntax::{RLanguage, RSyntaxKind, RSyntaxNode};
 
-use biome_rowan::SyntaxNode;
 use r::message::*;
-use r::object::Expr;
-use r::parser::*;
-use r::session::SessionParserConfig;
 use rayon::prelude::*;
-use std::fs::File;
-use std::io::{BufReader, Read};
+use std::fs;
 use std::path::Path;
 use std::time::Instant;
 
 fn main() {
     let start = Instant::now();
-    let r_files = vec!["foo2.R"];
-    // let r_files = vec!["foo.R", "foo2.R", "foo3.R"];
+    // let r_files = vec!["foo2.R"];
+    let r_files = vec!["foo.R", "foo2.R", "foo3.R"];
     let parser_options = RParserOptions::default();
     let messages: Vec<Message> = r_files
         .par_iter()
         .map(|file| {
-            let file = File::open(Path::new(file)).unwrap();
-            let mut buf_reader = BufReader::new(file);
-            let mut contents = String::new();
-            buf_reader.read_to_string(&mut contents).unwrap();
+            let contents = fs::read_to_string(Path::new(file)).expect("couldn't read file");
             let parsed = air_r_parser::parse(contents.as_str(), parser_options);
             let out = &parsed.syntax::<RLanguage>();
             let loc_new_lines = find_new_lines(&out);
-            let msg = check_ast(&out, loc_new_lines);
+            let msg = check_ast(&out, loc_new_lines, file);
             msg
         })
         .flatten()
@@ -40,47 +32,55 @@ fn main() {
     println!("Checked files in: {:?}", duration);
 }
 
-fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>) -> Vec<Message> {
+fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>, file: &str) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
-    // println!("{}", ast);
-    println!("{:?}", ast.kind());
+    // println!("{:?}", ast.text());
+    // println!("{:?}", ast.kind());
     let _ = match ast.kind() {
-        RSyntaxKind::R_EXPRESSION_LIST
-        | RSyntaxKind::R_CALL
+        RSyntaxKind::R_EXPRESSION_LIST => {
+            let _ = ast
+                .children()
+                .map(|child| messages.extend(check_ast(&child, loc_new_lines.clone(), file)))
+                .collect::<Vec<_>>();
+        }
+        RSyntaxKind::R_CALL
         | RSyntaxKind::R_CALL_ARGUMENTS
         | RSyntaxKind::R_ARGUMENT_LIST
         | RSyntaxKind::R_ARGUMENT
         | RSyntaxKind::R_ROOT => match &ast.first_child() {
-            Some(x) => messages.extend(check_ast(x, loc_new_lines)),
-            None => println!("foo1"),
+            Some(x) => messages.extend(check_ast(x, loc_new_lines, file)),
+            // None => println!("foo1"),
+            None => (),
         },
         RSyntaxKind::R_IDENTIFIER => {
-            if ast.text_trimmed() == "T" {
+            if ast.text_trimmed() == "T" || ast.text_trimmed() == "F" {
                 let (row, column) = find_row_col(ast, &loc_new_lines);
                 messages.push(Message::TrueFalseSymbol {
-                    filename: "foobar".into(),
+                    filename: file.into(),
                     location: Location { row, column },
                 });
             }
             let fc = &ast.first_child();
-            let has_child = fc.is_some();
+            let _has_child = fc.is_some();
             let ns = ast.next_sibling();
             let has_sibling = ns.is_some();
             if has_sibling {
-                messages.extend(check_ast(&ns.unwrap(), loc_new_lines));
+                messages.extend(check_ast(&ns.unwrap(), loc_new_lines, file));
             } else {
-                println!("foo2")
+                // println!("foo2")
+                ()
             }
         }
         _ => match &ast.first_child() {
-            Some(x) => messages.extend(check_ast(x, loc_new_lines)),
+            Some(x) => messages.extend(check_ast(x, loc_new_lines, file)),
             None => {
                 let ns = ast.next_sibling();
                 let has_sibling = ns.is_some();
                 if has_sibling {
-                    messages.extend(check_ast(&ns.unwrap(), loc_new_lines));
+                    messages.extend(check_ast(&ns.unwrap(), loc_new_lines, file));
                 } else {
-                    println!("foo3")
+                    // println!("foo3")
+                    ()
                 }
             }
         },
@@ -106,9 +106,12 @@ fn find_row_col(ast: &RSyntaxNode, loc_new_lines: &Vec<usize>) -> (usize, usize)
         .filter(|x| *x < &start)
         .collect::<Vec<&usize>>();
     let n_new_lines = new_lines_before.len();
-    let last_new_line = new_lines_before.last().unwrap();
+    let last_new_line = match new_lines_before.last() {
+        Some(x) => **x,
+        None => 0 as usize,
+    };
 
-    let row = start - **last_new_line + 1;
+    let row = start - last_new_line + 1;
     let col = n_new_lines + 1;
     (row, col)
 }
