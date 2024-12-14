@@ -25,18 +25,18 @@ fn main() {
     let start = Instant::now();
     let args = Args::parse();
 
-    let r_files = WalkDir::new(args.dir)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
-        .filter(|e| {
-            e.path().extension() == Some(std::ffi::OsStr::new("R"))
-                || e.path().extension() == Some(std::ffi::OsStr::new("r"))
-        })
-        .map(|e| e.path().to_path_buf())
-        .collect::<Vec<_>>();
+    // let r_files = WalkDir::new(args.dir)
+    //     .into_iter()
+    //     .filter_map(Result::ok)
+    //     .filter(|e| e.file_type().is_file())
+    //     .filter(|e| {
+    //         e.path().extension() == Some(std::ffi::OsStr::new("R"))
+    //             || e.path().extension() == Some(std::ffi::OsStr::new("r"))
+    //     })
+    //     .map(|e| e.path().to_path_buf())
+    //     .collect::<Vec<_>>();
 
-    // let r_files = vec![Path::new("demo/foo.R")];
+    let r_files = vec![Path::new("demo/foo.R")];
 
     let parser_options = RParserOptions::default();
     let messages: Vec<Message> = r_files
@@ -76,28 +76,22 @@ fn apply_fixes(fixes: &Vec<Message>, contents: &str) -> String {
         .collect::<Vec<_>>();
     let old_content = contents;
     let mut new_content = old_content.to_string();
-
-    let offset = 0_usize;
-
-    let old_length: i32 = old_content.chars().count().try_into().unwrap();
-    let mut new_length: i32 = old_length;
+    let mut diff_length = 0;
 
     for fix in fixes {
-        let mut start = (fix.start - offset) as i32;
-        let mut end = (fix.end - offset) as i32;
-
+        let mut start: i32 = fix.start.try_into().unwrap();
+        let mut end: i32 = fix.end.try_into().unwrap();
         // println!("original start: {}", start);
         // println!("original end: {}", end);
         // println!("old_length: {}", old_length);
         // println!("new_length: {}", new_length);
 
-        let diff_length = new_length - old_length;
         // println!("diff_length: {}", diff_length);
 
-        if diff_length != 0 {
-            start += diff_length;
-            end += diff_length;
-        }
+        start += diff_length;
+        end += diff_length;
+
+        diff_length += fix.offset_change_before;
 
         // println!("new start: {}", start);
         // println!("new end: {}\n", end);
@@ -106,8 +100,6 @@ fn apply_fixes(fixes: &Vec<Message>, contents: &str) -> String {
         let end_usize = end as usize;
 
         new_content.replace_range(start_usize..end_usize, &fix.content);
-
-        new_length = new_content.chars().count().try_into().unwrap();
     }
 
     new_content.to_string()

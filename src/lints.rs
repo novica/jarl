@@ -37,6 +37,7 @@ impl LintChecker for AnyIsNa {
                             start: range.start().into(),
                             end: range.end().into(),
                             applied: false,
+                            offset_change_before: -5,
                         },
                     })
                 };
@@ -72,6 +73,7 @@ impl LintChecker for AnyDuplicated {
                             start: range.start().into(),
                             end: range.end().into(),
                             applied: false,
+                            offset_change_before: -1,
                         },
                     })
                 };
@@ -101,6 +103,7 @@ impl LintChecker for TrueFalseSymbol {
                     start: range.start().into(),
                     end: range.end().into(),
                     applied: false,
+                    offset_change_before: 0,
                 },
             });
         }

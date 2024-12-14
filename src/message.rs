@@ -11,6 +11,7 @@ pub struct Fix {
     pub start: usize,
     pub end: usize,
     pub applied: bool,
+    pub offset_change_before: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
