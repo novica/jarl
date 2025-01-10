@@ -11,7 +11,6 @@ pub struct Fix {
     pub start: usize,
     pub end: usize,
     pub applied: bool,
-    pub length_change: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

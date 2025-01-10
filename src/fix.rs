@@ -11,13 +11,17 @@ pub fn apply_fixes(fixes: &[Message], contents: &str) -> (bool, String) {
         .collect::<Vec<_>>();
     let old_content = contents;
     let mut new_content = old_content.to_string();
-    let mut diff_length = 0;
     let mut last_modified_pos = 0;
     let mut has_skipped_fixes = false;
+
+    let old_length = old_content.chars().count() as i32;
+    let mut new_length = old_length as i32;
 
     for fix in fixes {
         let mut start: i32 = fix.start.try_into().unwrap();
         let mut end: i32 = fix.end.try_into().unwrap();
+
+        let diff_length = new_length - old_length;
 
         start += diff_length;
         end += diff_length;
@@ -29,11 +33,11 @@ pub fn apply_fixes(fixes: &[Message], contents: &str) -> (bool, String) {
             continue;
         }
 
-        diff_length += fix.length_change;
         let start_usize = start as usize;
         let end_usize = end as usize;
 
         new_content.replace_range(start_usize..end_usize, &fix.content);
+        new_length = new_content.chars().count() as i32;
         last_modified_pos = end + diff_length;
     }
 

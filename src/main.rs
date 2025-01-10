@@ -17,7 +17,7 @@ use walkdir::WalkDir;
 struct Args {
     #[arg(short, long, default_value = ".")]
     dir: String,
-    #[arg(short, long, default_value = "true")]
+    #[arg(short, long, default_value = "false")]
     fix: bool,
 }
 
@@ -44,21 +44,18 @@ fn main() {
         // TODO: this only ignores files where there was an error, it doesn't
         // return the error messages
         .filter_map(|file| {
-            let contents = fs::read_to_string(Path::new(file)).expect("Invalid file");
-            let checks = get_checks(&contents, file, parser_options).unwrap();
-
-            if args.fix {
-                let mut has_skipped_fixes = true;
-                loop {
-                    if !has_skipped_fixes {
-                        break;
-                    }
-                    let (new_has_skipped_fixes, fixed_text) = apply_fixes(&checks, &contents);
-                    has_skipped_fixes = new_has_skipped_fixes;
-                    let _ = fs::write(file, fixed_text);
+            let mut checks: Vec<Message>;
+            let mut has_skipped_fixes = true;
+            loop {
+                let contents = fs::read_to_string(Path::new(file)).expect("Invalid file");
+                checks = get_checks(&contents, file, parser_options).unwrap();
+                if !has_skipped_fixes || !args.fix {
+                    break;
                 }
+                let (new_has_skipped_fixes, fixed_text) = apply_fixes(&checks, &contents);
+                has_skipped_fixes = new_has_skipped_fixes;
+                let _ = fs::write(file, fixed_text);
             }
-
             Some(checks)
         })
         .flatten()
