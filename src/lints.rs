@@ -120,10 +120,14 @@ impl LintChecker for ClassEquals {
         let lhs = children.next().unwrap();
         let rhs = children.next().unwrap();
 
-        let fun = lhs.first_child().unwrap();
-        if fun.text_trimmed() != "class" {
+        if let Some(fun) = lhs.first_child() {
+            if fun.text_trimmed() != "class" {
+                return messages;
+            }
+        } else {
             return messages;
         }
+
         if rhs.kind() != RSyntaxKind::R_STRING_VALUE {
             return messages;
         }

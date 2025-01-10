@@ -39,7 +39,6 @@ pub fn check_ast(ast: &RSyntaxNode, loc_new_lines: &[usize], file: &str) -> Vec<
         RSyntaxKind::R_EXPRESSION_LIST
         | RSyntaxKind::R_FUNCTION_DEFINITION
         | RSyntaxKind::R_CALL_ARGUMENTS
-        | RSyntaxKind::R_CALL
         | RSyntaxKind::R_SUBSET
         | RSyntaxKind::R_SUBSET2
         | RSyntaxKind::R_PARAMETERS
