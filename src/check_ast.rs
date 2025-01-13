@@ -1,4 +1,5 @@
 use air_r_parser::RParserOptions;
+use air_r_syntax::RBinaryExpression;
 use air_r_syntax::{RSyntaxKind, RSyntaxNode};
 
 use crate::lints::*;
@@ -21,14 +22,30 @@ pub fn get_checks(
 pub fn check_ast(ast: &RSyntaxNode, loc_new_lines: &[usize], file: &str) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
 
-    // println!("{:?}", ast);
     // println!("{:?}", ast.text());
+
+    // if ast.kind() == RSyntaxKind::R_BINARY_EXPRESSION {
+    //     unsafe {
+    //         println!(
+    //             "AST node: {:?}",
+    //             RBinaryExpression::new_unchecked(ast.clone())
+    //         )
+    //     }
+    // };
+
+    // println!("{:?}", ast.kind());
+    // println!("Text: {:?}", ast.text_trimmed());
+    // println!(
+    //     "Children: {:?}",
+    //     ast.children().map(|x| x.kind()).collect::<Vec<_>>()
+    // );
 
     let linters: Vec<Box<dyn LintChecker>> = vec![
         Box::new(AnyIsNa),
         Box::new(TrueFalseSymbol),
         Box::new(AnyDuplicated),
         Box::new(ClassEquals),
+        Box::new(EqualsNa),
     ];
 
     for linter in linters {
@@ -71,7 +88,11 @@ pub fn check_ast(ast: &RSyntaxNode, loc_new_lines: &[usize], file: &str) -> Vec<
             }
         }
         _ => match &ast.first_child() {
-            Some(x) => messages.extend(check_ast(x, loc_new_lines, file)),
+            Some(_) => {
+                for child in ast.children() {
+                    messages.extend(check_ast(&child, loc_new_lines, file));
+                }
+            }
             None => {
                 let ns = ast.next_sibling();
                 let has_sibling = ns.is_some();
