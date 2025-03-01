@@ -43,11 +43,11 @@ impl ReferenceId {
 
 #[derive(Debug)]
 pub struct SemanticModel {
-    data: Arc<SemanticModelData>,
+    pub data: Arc<SemanticModelData>,
 }
 
 #[derive(Debug)]
-pub(super) struct SemanticModelData {
+pub struct SemanticModelData {
     pub root: RRoot,
     pub scopes: Vec<SemanticModelScopeData>,
     pub scope_by_range: Lapper<u32, ScopeId>,

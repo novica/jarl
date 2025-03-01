@@ -1,4 +1,5 @@
 pub mod check_ast;
+pub mod check_unused_vars;
 pub mod fix;
 pub mod lints;
 pub mod location;

@@ -1,6 +1,7 @@
 use air_r_parser::RParserOptions;
 
 use flir::check_ast::*;
+use flir::check_unused_vars::*;
 use flir::fix::*;
 use flir::message::*;
 
@@ -62,7 +63,9 @@ fn main() {
 
     let semantic = semantic_model(root, SemanticModelOptions::default());
 
-    println!("semantic model: {:#?}", semantic);
+    check_unused_variables(&semantic);
+
+    // println!("semantic model: {:#?}", semantic);
 
     // let parser_options = RParserOptions::default();
     // let messages: Vec<Message> = r_files
