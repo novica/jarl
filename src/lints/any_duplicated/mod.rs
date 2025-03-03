@@ -7,16 +7,34 @@ mod tests {
     #[test]
     fn test_lint_any_duplicated() {
         use insta::assert_snapshot;
-        let (lint_output, fix_output) = get_lint_and_fix_text(
-            vec![
-                "any(duplicated(x))",
-                "any(duplicated(foo(x)))",
-                "any(duplicated(x), na.rm = TRUE)",
-            ],
-            "any_duplicated",
+
+        let expected_message = "`any(duplicated(...))` is inefficient";
+        assert!(expect_lint(
+            "any(duplicated(x))",
+            expected_message,
+            "any_duplicated"
+        ));
+        assert!(expect_lint(
+            "any(duplicated(foo(x)))",
+            expected_message,
+            "any_duplicated"
+        ));
+        assert!(expect_lint(
+            "any(duplicated(x), na.rm = TRUE)",
+            expected_message,
+            "any_duplicated"
+        ));
+        assert_snapshot!(
+            "fix_output",
+            get_fixed_text(
+                vec![
+                    "any(duplicated(x))",
+                    "any(duplicated(foo(x)))",
+                    "any(duplicated(x), na.rm = TRUE)",
+                ],
+                "any_duplicated",
+            )
         );
-        assert_snapshot!("lint_output", lint_output);
-        assert_snapshot!("fix_output", fix_output);
     }
 
     #[test]

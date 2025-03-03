@@ -7,20 +7,45 @@ mod tests {
     #[test]
     fn test_lint_equal_assignment() {
         use insta::assert_snapshot;
-        let (lint_output, fix_output) = get_lint_and_fix_text(
-            vec![
-                "blah=1",
-                "blah = 1",
-                "blah = fun(1)",
-                "fun((blah = fun(1)))",
-                "1 -> fun",
-                // TODO
-                // "blah = fun(1) {",
-            ],
-            "equal_assignment",
+
+        let expected_message = "Use <- for assignment";
+        assert!(expect_lint("blah=1", expected_message, "equal_assignment"));
+        assert!(expect_lint(
+            "blah = 1",
+            expected_message,
+            "equal_assignment"
+        ));
+        assert!(expect_lint(
+            "blah = fun(1)",
+            expected_message,
+            "equal_assignment"
+        ));
+        assert!(expect_lint(
+            "fun((blah = fun(1)))",
+            expected_message,
+            "equal_assignment"
+        ));
+        assert!(expect_lint(
+            "1 -> fun",
+            expected_message,
+            "equal_assignment"
+        ));
+
+        assert_snapshot!(
+            "fix_output",
+            get_fixed_text(
+                vec![
+                    "blah=1",
+                    "blah = 1",
+                    "blah = fun(1)",
+                    "fun((blah = fun(1)))",
+                    "1 -> fun",
+                    // TODO
+                    // "blah = fun(1) {",
+                ],
+                "equal_assignment",
+            )
         );
-        assert_snapshot!("lint_output", lint_output);
-        assert_snapshot!("fix_output", fix_output);
     }
 
     #[test]

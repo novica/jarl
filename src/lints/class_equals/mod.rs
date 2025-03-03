@@ -7,23 +7,74 @@ mod tests {
     #[test]
     fn test_lint_class_equals() {
         use insta::assert_snapshot;
-        let (lint_output, fix_output) = get_lint_and_fix_text(
-            vec![
-                "is_regression <- class(x) == 'lm'",
-                "if (class(x) == 'character') 1",
-                "is_regression <- 'lm' == class(x)",
-                "is_regression <- \"lm\" == class(x)",
-                // TODO: those two should fix
-                "if ('character' %in% class(x)) 1",
-                "if (class(x) %in% 'character') 1",
-                "if (class(x) != 'character') 1",
-                "x[if (class(x) == 'foo') 1 else 2]",
-                "class(foo(bar(y) + 1)) == 'abc'",
-            ],
-            "class_equals",
+
+        let expected_message = "instead of comparing `class";
+
+        assert!(expect_lint(
+            "is_regression <- class(x) == 'lm'",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "if (class(x) == 'character') 1",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "is_regression <- 'lm' == class(x)",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "is_regression <- \"lm\" == class(x)",
+            expected_message,
+            "class_equals"
+        ));
+        // TODO: those two should fix
+        assert!(expect_lint(
+            "if ('character' %in% class(x)) 1",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "if (class(x) %in% 'character') 1",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "if (class(x) != 'character') 1",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "x[if (class(x) == 'foo') 1 else 2]",
+            expected_message,
+            "class_equals"
+        ));
+        assert!(expect_lint(
+            "class(foo(bar(y) + 1)) == 'abc'",
+            expected_message,
+            "class_equals"
+        ));
+
+        assert_snapshot!(
+            "fix_output",
+            get_fixed_text(
+                vec![
+                    "is_regression <- class(x) == 'lm'",
+                    "if (class(x) == 'character') 1",
+                    "is_regression <- 'lm' == class(x)",
+                    "is_regression <- \"lm\" == class(x)",
+                    // TODO: those two should fix
+                    "if ('character' %in% class(x)) 1",
+                    "if (class(x) %in% 'character') 1",
+                    "if (class(x) != 'character') 1",
+                    "x[if (class(x) == 'foo') 1 else 2]",
+                    "class(foo(bar(y) + 1)) == 'abc'",
+                ],
+                "class_equals"
+            )
         );
-        assert_snapshot!("lint_output", lint_output);
-        assert_snapshot!("fix_output", fix_output);
     }
 
     #[test]

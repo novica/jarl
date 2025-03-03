@@ -7,16 +7,30 @@ mod tests {
     #[test]
     fn test_lint_any_na() {
         use insta::assert_snapshot;
-        let (lint_output, fix_output) = get_lint_and_fix_text(
-            vec![
-                "any(is.na(x))",
-                "any(is.na(foo(x)))",
-                "any(is.na(x), na.rm = TRUE)",
-            ],
-            "any_is_na",
+
+        let expected_message = "`any(is.na(...))` is inefficient";
+        assert!(expect_lint("any(is.na(x))", expected_message, "any_is_na"));
+        assert!(expect_lint(
+            "any(is.na(foo(x)))",
+            expected_message,
+            "any_is_na"
+        ));
+        assert!(expect_lint(
+            "any(is.na(x), na.rm = TRUE)",
+            expected_message,
+            "any_is_na"
+        ));
+        assert_snapshot!(
+            "fix_output",
+            get_fixed_text(
+                vec![
+                    "any(is.na(x))",
+                    "any(is.na(foo(x)))",
+                    "any(is.na(x), na.rm = TRUE)",
+                ],
+                "any_is_na"
+            )
         );
-        assert_snapshot!("lint_output", lint_output);
-        assert_snapshot!("fix_output", fix_output);
     }
 
     #[test]
