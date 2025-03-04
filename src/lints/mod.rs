@@ -6,6 +6,7 @@ pub(crate) mod empty_assignment;
 pub(crate) mod equal_assignment;
 pub(crate) mod equals_na;
 pub(crate) mod length_levels;
+pub(crate) mod length_test;
 pub(crate) mod true_false_symbol;
 
 pub const ALL_RULES: &[&str] = &[
@@ -17,5 +18,6 @@ pub const ALL_RULES: &[&str] = &[
     "equal_assignment",
     "equals_na",
     "length_levels",
+    "length_test",
     "true_false_symbol",
 ];
