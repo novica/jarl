@@ -79,7 +79,7 @@ impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let (row, col) = match self.location {
             Some(loc) => (loc.row, loc.column),
-            None => (0, 0),
+            None => unreachable!("Row/col locations must have been parsed successfully before."),
         };
         write!(
             f,
