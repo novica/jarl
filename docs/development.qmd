@@ -187,3 +187,39 @@ pub struct SyntaxErrorMessage {
 ```
 
 `Message` has a lot of methods, for instance to return the message itself, the suggested fix, whether the violation has a fix or not, etc.
+
+### Fixing files
+
+Important structs:
+
+* [`FixResult`](https://github.com/astral-sh/ruff/blob/c7372d218de365c8298afb37530ee26999ba91b0/crates/ruff_linter/src/fix/mod.rs) contains the output, after applying the fixes:
+
+```rust
+pub(crate) struct FixResult {
+    /// The resulting source code, after applying all fixes.
+    pub(crate) code: String,
+    /// The number of fixes applied for each [`Rule`].
+    pub(crate) fixes: FixTable,
+    /// Source map for the fixed source code.
+    pub(crate) source_map: SourceMap,
+}
+```
+
+
+Two main functions:
+
+* `fix_file()` takes a list of `Message` that contain everything needed (original code, location, replacement, fix applicability, etc.), and only keeps those that have the correct fix applicability (for instance allowing or disallowing unsafe fixes). It runs `apply_fixes()` on those.
+
+* `apply_fixes()` is where the replacement actually happens. It goes through every pair of rule-fix but first they [sort them](https://github.com/astral-sh/ruff/blob/c7372d218de365c8298afb37530ee26999ba91b0/crates/ruff_linter/src/fix/mod.rs#L73) (see below).
+There are also the concepts of "edits" and "isolation". Importantly, fixes that concern locations that already received another fix are skipped.
+So basically they start from the top of the file and apply fixes in order of appearance (I suppose this is what the "sort" mentioned above is about).
+When they apply a fix, they modify the last position modified and the next fix to be applied cannot be applied before this last_pos.
+
+Concepts that I need to understand:
+
+* Locator: a struct that takes the content of a file as well as the index of line start positions. This index is `OnceCell<LineIndex>`. `OnceCell` kinda allows to cache results so that we access LineIndex only once. LineIndex has many helpers to quickly convert an offset to a (line, col) position. It can also return the entire line that matches a certain offset (let's say we have a linebreak at offset 10 and we ask for the entire line at offset 15, then it returns bytes 10-end of line).
+* what is the difference between "fix" and "edit"? An Edit is a single action: replace, insert, or delete a specific content at a specific TextRange. A Fix contains all the edits necessary to fix the lint, so it may contain one or more Edits.
+* isolation
+
+How do they [sort fixes](https://github.com/astral-sh/ruff/blob/c7372d218de365c8298afb37530ee26999ba91b0/crates/ruff_linter/src/fix/mod.rs#L133)? They compare 2 rules and their fixes but actually the 2 rules are only useful in some specific cases (so unclear whether I'll actually need that).
+Then they only compare the start index of each fix.
