@@ -32,7 +32,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install R dependencies
-        run: install.packages("yaml")
+        run: install.packages(c("rmarkdown", "yaml"))
         shell: Rscript {0}
 
       - name: Generate rules documentation
@@ -40,7 +40,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Render Quarto Project
-        uses: quarto-dev/quarto-actions/render@v2
+        uses: quarto-dev/quarto-actions/publish@v2
         with:
-          path: docs
           target: gh-pages
+          path: docs
