@@ -16,10 +16,50 @@ use crate::lints::redundant_equals::redundant_equals::RedundantEquals;
 use crate::lints::true_false_symbol::true_false_symbol::TrueFalseSymbol;
 use crate::lints::which_grepl::which_grepl::WhichGrepl;
 use crate::message::*;
+use crate::rule_table::RuleTable;
 use crate::trait_lint_checker::LintChecker;
 use crate::utils::*;
 use anyhow::Result;
 use std::path::Path;
+
+pub(crate) struct LintContext {
+    // diagnostics: RefCell<Vec<OldDiagnostic>>,
+    // source_file: SourceFile,
+    rules: RuleTable,
+    // settings: &'a LinterSettings,
+}
+
+pub struct Checker {
+    context: LintContext,
+}
+
+fn rule_name_to_rule_table(rule_name: &str) -> RuleTable {
+    let mut rules = RuleTable::empty();
+    let rules_with_fix = &[
+        "any_duplicated",
+        "any_is_na",
+        "class_equals",
+        "empty_assignment",
+        "equal_assignment",
+        "equals_na",
+        "length_levels",
+        "length_test",
+        "lengths",
+        "redundant_equals",
+        "true_false_symbol",
+        "which_grepl",
+    ];
+
+    let rules_without_fix = &["duplicated_arguments", "expect_length"];
+    for rule in rules_with_fix {
+        rules.enable(rule, true);
+    }
+    for rule in rules_without_fix {
+        rules.enable(rule, false);
+    }
+
+    rules
+}
 
 fn rule_name_to_lint_checker(rule_name: &str) -> Box<dyn LintChecker> {
     match rule_name {
@@ -57,6 +97,8 @@ pub fn get_checks(
 
     Ok(diagnostics)
 }
+
+fn visit_stmt(ast: &RSyntaxNode) {}
 
 pub fn check_ast(
     ast: &RSyntaxNode,
