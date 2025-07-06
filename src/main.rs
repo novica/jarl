@@ -1,9 +1,18 @@
 use air_r_parser::RParserOptions;
+use air_workspace::discovery::discover_r_file_paths;
+use air_workspace::discovery::discover_settings;
+use air_workspace::discovery::DiscoveredSettings;
+use air_workspace::format::format_file;
+use air_workspace::format::FormatFileError;
+use air_workspace::format::FormattedFile;
+use air_workspace::resolve::PathResolver;
+use air_workspace::settings::FormatSettings;
+use air_workspace::settings::Settings;
 
 use flir::check_ast::*;
+use flir::config::build_config;
 use flir::fix::*;
 use flir::message::*;
-use flir::utils::parse_rules;
 
 use clap::{arg, Parser};
 use rayon::prelude::*;
@@ -21,7 +30,7 @@ use walkdir::WalkDir;
     about = "Flint: Find and Fix Lints in R Code",
     after_help = "For help with a specific command, see: `flir help <command>`."
 )]
-struct Args {
+pub struct Args {
     #[arg(
         short,
         long,
@@ -50,23 +59,20 @@ fn main() -> Result<()> {
     // let start = Instant::now();
     let args = Args::parse();
 
-    let r_files = WalkDir::new(args.dir)
+    let mut resolver = PathResolver::new(Settings::default());
+    for DiscoveredSettings { directory, settings } in discover_settings(&[args.dir.clone()])? {
+        resolver.add(&directory, settings);
+    }
+    let paths = discover_r_file_paths(&[args.dir.clone()], &resolver, true)
         .into_iter()
         .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
-        .filter(|e| {
-            e.path().extension() == Some(std::ffi::OsStr::new("R"))
-                || e.path().extension() == Some(std::ffi::OsStr::new("r"))
-        })
-        .map(|e| e.path().to_path_buf())
         .collect::<Vec<_>>();
+    // let paths = vec![Path::new("demos/foo.R").to_path_buf()];
 
-    let rules = parse_rules(&args.rules);
-
-    // let r_files = vec![Path::new("demo/foo.R").to_path_buf()];
+    let config = build_config(&args.rules);
 
     let parser_options = RParserOptions::default();
-    let result: Result<Vec<Diagnostic>, anyhow::Error> = r_files
+    let result: Result<Vec<Diagnostic>, anyhow::Error> = paths
         .par_iter()
         .map(|file| {
             let mut checks: Vec<Diagnostic>;
@@ -77,7 +83,7 @@ fn main() -> Result<()> {
                     .with_context(|| format!("Failed to read file: {}", file.display()))?;
 
                 // Add file context to the get_checks error
-                checks = get_checks(&contents, file, parser_options, rules.clone()).with_context(
+                checks = get_checks(&contents, file, parser_options, config.clone()).with_context(
                     || format!("Failed to get checks for file: {}", file.display()),
                 )?;
 

@@ -1,6 +1,7 @@
 use air_r_parser::RParserOptions;
 use air_r_syntax::{RSyntaxKind, RSyntaxNode};
 
+use crate::config::Config;
 use crate::lints::any_duplicated::any_duplicated::AnyDuplicated;
 use crate::lints::any_is_na::any_is_na::AnyIsNa;
 use crate::lints::class_equals::class_equals::ClassEquals;
@@ -16,50 +17,10 @@ use crate::lints::redundant_equals::redundant_equals::RedundantEquals;
 use crate::lints::true_false_symbol::true_false_symbol::TrueFalseSymbol;
 use crate::lints::which_grepl::which_grepl::WhichGrepl;
 use crate::message::*;
-use crate::rule_table::RuleTable;
 use crate::trait_lint_checker::LintChecker;
 use crate::utils::*;
 use anyhow::Result;
 use std::path::Path;
-
-pub(crate) struct LintContext {
-    // diagnostics: RefCell<Vec<OldDiagnostic>>,
-    // source_file: SourceFile,
-    rules: RuleTable,
-    // settings: &'a LinterSettings,
-}
-
-pub struct Checker {
-    context: LintContext,
-}
-
-fn rule_name_to_rule_table(rule_name: &str) -> RuleTable {
-    let mut rules = RuleTable::empty();
-    let rules_with_fix = &[
-        "any_duplicated",
-        "any_is_na",
-        "class_equals",
-        "empty_assignment",
-        "equal_assignment",
-        "equals_na",
-        "length_levels",
-        "length_test",
-        "lengths",
-        "redundant_equals",
-        "true_false_symbol",
-        "which_grepl",
-    ];
-
-    let rules_without_fix = &["duplicated_arguments", "expect_length"];
-    for rule in rules_with_fix {
-        rules.enable(rule, true);
-    }
-    for rule in rules_without_fix {
-        rules.enable(rule, false);
-    }
-
-    rules
-}
 
 fn rule_name_to_lint_checker(rule_name: &str) -> Box<dyn LintChecker> {
     match rule_name {
@@ -85,27 +46,23 @@ pub fn get_checks(
     contents: &str,
     file: &Path,
     parser_options: RParserOptions,
-    rules: Vec<&str>,
+    config: Config,
 ) -> Result<Vec<Diagnostic>> {
     let parsed = air_r_parser::parse(contents, parser_options);
 
     let syntax = &parsed.syntax();
     let loc_new_lines = find_new_lines(syntax)?;
-    let diagnostics: Vec<Diagnostic> = check_ast(syntax, file.to_str().unwrap(), &rules)?;
+    let diagnostics: Vec<Diagnostic> = check_ast(syntax, file.to_str().unwrap(), config)?;
 
     let diagnostics = compute_lints_location(diagnostics, &loc_new_lines);
 
     Ok(diagnostics)
 }
 
-fn visit_stmt(ast: &RSyntaxNode) {}
-
-pub fn check_ast(
-    ast: &RSyntaxNode,
-    file: &str,
-    rules: &Vec<&str>,
-) -> anyhow::Result<Vec<Diagnostic>> {
+pub fn check_ast(ast: &RSyntaxNode, file: &str, config: Config) -> anyhow::Result<Vec<Diagnostic>> {
     let mut diagnostics: Vec<Diagnostic> = vec![];
+
+    let rules = config.rules.clone();
 
     let linters: Vec<Box<dyn LintChecker>> = rules
         .iter()
@@ -154,7 +111,7 @@ pub fn check_ast(
         | RSyntaxKind::R_WHILE_STATEMENT
         | RSyntaxKind::R_IF_STATEMENT => {
             for child in ast.children() {
-                diagnostics.extend(check_ast(&child, file, rules)?);
+                diagnostics.extend(check_ast(&child, file, config.clone())?);
             }
         }
         // RSyntaxKind::R_IDENTIFIER => {
@@ -173,7 +130,7 @@ pub fn check_ast(
             match &ast.first_child() {
                 Some(_) => {
                     for child in ast.children() {
-                        diagnostics.extend(check_ast(&child, file, rules)?);
+                        diagnostics.extend(check_ast(&child, file, config.clone())?);
                     }
                 }
                 None => {

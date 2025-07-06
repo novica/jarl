@@ -1,5 +1,6 @@
 // pub mod analyze;
 pub mod check_ast;
+pub mod config;
 pub mod fix;
 pub mod lints;
 pub mod location;
