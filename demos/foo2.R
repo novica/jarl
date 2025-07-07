@@ -18,3 +18,5 @@ while (TRUE) {
 
 # b <- T
 # any(duplicated(1 + 1))
+
+1 + 1
