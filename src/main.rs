@@ -8,16 +8,16 @@ use air_workspace::settings::Settings;
 use flir::check::check;
 use flir::config::build_config;
 
-use clap::{arg, Parser};
-// use std::time::Instant;
 use anyhow::Result;
+use clap::{arg, Parser};
+use std::time::Instant;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(
     author,
     name = "flir",
-    about = "Flint: Find and Fix Lints in R Code",
+    about = "flir: Find and Fix Lints in R Code",
     after_help = "For help with a specific command, see: `flir help <command>`."
 )]
 pub struct Args {
@@ -42,12 +42,24 @@ pub struct Args {
         help = "Names of rules to include, separated by a comma (no spaces)."
     )]
     rules: String,
+    #[arg(
+        short,
+        long,
+        default_value = "false",
+        help = "Show the time taken by the function."
+    )]
+    with_timing: bool,
 }
 
-/// This is my first rust crate
 fn main() -> Result<()> {
-    // let start = Instant::now();
     let args = Args::parse();
+
+    let show_timing = cfg!(debug_assertions) || args.with_timing;
+    let start = if show_timing {
+        Some(Instant::now())
+    } else {
+        None
+    };
 
     let mut resolver = PathResolver::new(Settings::default());
     for DiscoveredSettings { directory, settings } in discover_settings(&[args.dir.clone()])? {
@@ -78,7 +90,10 @@ fn main() -> Result<()> {
         }
     };
 
+    if let Some(start) = start {
+        let duration = start.elapsed();
+        println!("\nChecked files in: {:?}", duration);
+    }
+
     Ok(())
-    // let duration = start.elapsed();
-    // println!("Checked files in: {:?}", duration);
 }
