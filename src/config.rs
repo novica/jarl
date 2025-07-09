@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
-use crate::lints::all_rules_and_safety;
-use air_r_parser::RParserOptions;
+use crate::{args::CliArgs, lints::all_rules_and_safety};
 
 #[derive(Clone)]
 pub struct Config<'a> {
+    pub paths: Vec<PathBuf>,
     /// List of rules and whether they have an associated safe fix, passed by
     /// the user and/or recovered from the config file. Those will
     /// not necessarily all be used, for instance if we disable unsafe fixes.
@@ -14,33 +14,27 @@ pub struct Config<'a> {
     /// `rules` because it may filter out rules that have unsafe fixes.
     pub rules_to_apply: Vec<&'a str>,
     pub should_fix: bool,
-    pub allow_unsafe_fixes: bool,
-    pub parser_options: RParserOptions,
+    pub unsafe_fixes: bool,
 }
 
-pub fn build_config(
-    rules_cli: &str,
-    should_fix: bool,
-    allow_unsafe_fixes: bool,
-    parser_options: RParserOptions,
-) -> Config {
-    let rules = parse_rules_cli(rules_cli);
-    let rules_to_apply: Vec<&str> = if should_fix && !allow_unsafe_fixes {
+pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Config {
+    let rules = parse_rules_cli(&args.rules);
+    let rules_to_apply: Vec<&str> = if args.fix && !args.unsafe_fixes {
         rules
             .iter()
             .filter(|(_, v)| **v)
             .map(|(k, _)| *k)
             .collect::<Vec<&str>>()
     } else {
-        rules.keys().map(|k| *k).collect()
+        rules.keys().copied().collect()
     };
 
     Config {
+        paths,
         rules,
         rules_to_apply,
-        should_fix,
-        allow_unsafe_fixes,
-        parser_options,
+        should_fix: args.fix,
+        unsafe_fixes: args.unsafe_fixes,
     }
 }
 

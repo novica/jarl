@@ -9,8 +9,9 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
-pub fn check(paths: Vec<PathBuf>, config: Config) -> Result<Vec<Diagnostic>, anyhow::Error> {
-    let result: Result<Vec<Diagnostic>, anyhow::Error> = paths
+pub fn check(config: Config) -> Result<Vec<Diagnostic>, anyhow::Error> {
+    let result: Result<Vec<Diagnostic>, anyhow::Error> = config
+        .paths
         .par_iter()
         .map(|file| check_path(file, config.clone()))
         .flat_map(|result| match result {

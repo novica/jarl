@@ -1,3 +1,4 @@
+use air_r_parser::RParserOptions;
 use air_r_syntax::{RSyntaxKind, RSyntaxNode};
 
 use crate::config::Config;
@@ -42,7 +43,8 @@ fn rule_name_to_lint_checker(rule_name: &str) -> Box<dyn LintChecker> {
 }
 
 pub fn get_checks(contents: &str, file: &Path, config: Config) -> Result<Vec<Diagnostic>> {
-    let parsed = air_r_parser::parse(contents, config.parser_options);
+    let parser_options = RParserOptions::default();
+    let parsed = air_r_parser::parse(contents, parser_options);
 
     let syntax = &parsed.syntax();
     let loc_new_lines = find_new_lines(syntax)?;
