@@ -2,7 +2,7 @@
 name = "flir"
 description = "R linter written in Rust"
 authors = ["Etienne Bacher"]
-version = "0.0.13"
+version = "0.0.14"
 edition = "2024"
 
 license-file = "LICENSE.md"
