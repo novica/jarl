@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     // use std::path::Path;
     // let paths = vec![Path::new("demos/foo.R").to_path_buf()];
 
-    let config = build_config(&args, paths);
+    let config = build_config(&args, paths)?;
 
     let diagnostics = check(config)?;
 

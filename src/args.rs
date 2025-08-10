@@ -43,4 +43,10 @@ pub struct CliArgs {
         help = "Show the time taken by the function."
     )]
     pub with_timing: bool,
+    #[arg(
+        short,
+        long,
+        help = "The mimimum R version to be used by the linter. Some rules only work starting from a specific version."
+    )]
+    pub min_r_version: Option<String>,
 }

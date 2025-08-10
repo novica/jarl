@@ -45,7 +45,7 @@ impl Checker {
                 && r.should_fix
                 && (minimum_r_version.is_none()
                     || (minimum_r_version.is_some()
-                        && r.minimum_r_version.unwrap() == minimum_r_version.unwrap()))
+                        && r.minimum_r_version.unwrap() >= minimum_r_version.unwrap()))
         })
     }
 }
@@ -60,6 +60,7 @@ pub fn get_checks(contents: &str, file: &Path, config: Config) -> Result<Vec<Dia
 
     let mut checker = Checker::new();
     checker.rules = config.rules_to_apply;
+    checker.minimum_r_version = config.minimum_r_version;
     for expr in expressions_vec {
         check_expression(&expr, &mut checker)?;
     }

@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-
 use crate::{args::CliArgs, lints::all_rules_and_safety, rule_table::RuleTable};
+use anyhow::Result;
+use std::path::PathBuf;
 
 #[derive(Clone)]
 pub struct Config {
@@ -18,9 +18,15 @@ pub struct Config {
     pub should_fix: bool,
     /// Did the user pass the --unsafe-fixes flag?
     pub unsafe_fixes: bool,
+    /// The minimum R version used in the project. Used to disable some rules
+    /// that require functions that are not available in all R versions, e.g.
+    /// grepv() introduced in R 4.5.0.
+    /// Since it's unlikely those functions are introduced in patch versions,
+    /// this field takes only two numeric values.
+    pub minimum_r_version: Option<(u32, u32)>,
 }
 
-pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Config {
+pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Result<Config> {
     let rules = parse_rules_cli(&args.rules);
     let rules_to_apply: RuleTable = if args.fix && !args.unsafe_fixes {
         rules
@@ -32,13 +38,16 @@ pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Config {
         rules.clone()
     };
 
-    Config {
+    let minimum_r_version = parse_r_version(&args.min_r_version)?;
+
+    Ok(Config {
         paths,
         rules,
         rules_to_apply,
         should_fix: args.fix,
         unsafe_fixes: args.unsafe_fixes,
-    }
+        minimum_r_version,
+    })
 }
 
 pub fn parse_rules_cli(rules: &str) -> RuleTable {
@@ -51,5 +60,29 @@ pub fn parse_rules_cli(rules: &str) -> RuleTable {
             .filter(|r| passed_by_user.contains(&r.name.as_str()))
             .cloned()
             .collect::<RuleTable>()
+    }
+}
+
+pub fn parse_r_version(min_r_version: &Option<String>) -> Result<Option<(u32, u32)>> {
+    if let Some(min_r_version) = min_r_version {
+        // Check if the version contains exactly one dot and two parts
+        if !min_r_version.contains('.') || min_r_version.split('.').count() != 2 {
+            return Err(
+                anyhow::anyhow!("Invalid version format. Expected 'x.y', e.g., '4.3'").into(),
+            );
+        }
+
+        // Split by dot and try to parse each part as an integer
+        let parts: Vec<&str> = min_r_version.split('.').collect();
+        if let (Some(major), Some(minor)) = (parts.get(0), parts.get(1)) {
+            match (major.parse::<u32>(), minor.parse::<u32>()) {
+                (Ok(major), Ok(minor)) => Ok(Some((major, minor))),
+                _ => Err(anyhow::anyhow!("Version parts should be valid integers.").into()),
+            }
+        } else {
+            Err(anyhow::anyhow!("Unexpected error in version parsing.").into())
+        }
+    } else {
+        Ok(None)
     }
 }
