@@ -1,4 +1,4 @@
-use crate::check_expression::Checker;
+use crate::check::Checker;
 use air_r_syntax::RCall;
 
 use crate::lints::any_duplicated::any_duplicated::any_duplicated;
