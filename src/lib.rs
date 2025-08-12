@@ -8,6 +8,5 @@ pub mod lints;
 pub mod location;
 pub mod message;
 pub mod rule_table;
-pub mod settings;
 pub mod utils;
 pub mod utils_test;
