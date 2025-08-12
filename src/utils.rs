@@ -1,9 +1,11 @@
 use crate::location::Location;
 use crate::message::Diagnostic;
 use air_r_syntax::{
-    AnyRExpression, RArgument, RArgumentList, RExtractExpressionFields, RSyntaxKind, RSyntaxNode,
+    AnyRExpression, RArgument, RArgumentList, RCall, RCallFields, RExtractExpressionFields,
+    RSyntaxKind, RSyntaxNode,
 };
 use anyhow::{Result, anyhow};
+use biome_rowan::AstNode;
 use biome_rowan::AstSeparatedList;
 
 pub fn find_new_lines(ast: &RSyntaxNode) -> Result<Vec<usize>> {
@@ -220,6 +222,56 @@ pub fn get_function_name(function: AnyRExpression) -> String {
     // Those function names shouldn't trigger lint rules so fixing this is not
     // urgent.
     fn_name.unwrap_or("".to_string())
+}
+
+// Takes an RCall.
+// If this RCall corresponds to a nested function of the form
+// `outer_fn(inner_fn(content))`, then it returns `content`, otherwise None.
+pub fn get_nested_functions_content(
+    call: &RCall,
+    outer_fn: &str,
+    inner_fn: &str,
+) -> Result<Option<String>> {
+    let RCallFields { function, arguments } = call.as_fields();
+
+    let function = function?;
+    let outer_fn_name = get_function_name(function);
+
+    if outer_fn_name != outer_fn {
+        return Ok(None);
+    }
+
+    let items = arguments?.items();
+
+    let unnamed_arg = items
+        .into_iter()
+        .find(|x| x.clone().unwrap().name_clause().is_none());
+
+    // any(na.rm = TRUE/FALSE) and any() are valid
+    if outer_fn_name == "any" && unnamed_arg.is_none() {
+        return Ok(None);
+    }
+
+    let value = unnamed_arg.unwrap()?.value();
+
+    if let Some(inner) = value
+        && let Some(inner2) = inner.as_r_call()
+    {
+        let RCallFields { function, arguments } = inner2.as_fields();
+
+        let function = function?;
+        let inner_fn_name = get_function_name(function);
+
+        if inner_fn_name != inner_fn {
+            return Ok(None);
+        }
+
+        let inner_content = arguments?.items().into_syntax().text().to_string();
+
+        return Ok(Some(inner_content));
+    } else {
+        return Ok(None);
+    }
 }
 
 // #[cfg(test)]
