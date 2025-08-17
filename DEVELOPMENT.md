@@ -37,6 +37,6 @@ See below some useful commands for the development.
 ## Useful commands
 
 * `cargo run -- demos/foo.R` (or any other paths to check). The `--` in the middle is required to use the CLI in development mode (i.e. without installing it with `cargo install`)
-* `cargo build & cargo test`. It is required to build the crate before running tests.
+* `cargo build && cargo test`. It is required to build the crate before running tests.
 * `cargo insta test` and `cargo insta review` (if necessary) since snapshot tests are used for the fixing mode.
 * `cargo install --path . --profile=release` (or `--profile=dev`) to have a system-wide install and test the crate in other R projects.
