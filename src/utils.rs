@@ -292,7 +292,6 @@ pub fn get_nested_functions_content(
 //         fs::write(&temp_file, "blah = fun(1) {").expect("Failed to write initial content");
 
 //         let output = Command::new("flir")
-//             .arg("--dir")
 //             .arg(temp_file.path())
 //             .stdout(Stdio::piped())
 //             .output()

@@ -15,7 +15,6 @@ pub fn has_lint(text: &str, msg: &str, rule: &str) -> bool {
 
     let output = Command::cargo_bin("flir")
         .unwrap()
-        .arg("--dir")
         .arg(temp_file.path())
         .arg("--rules")
         .arg(rule)
@@ -47,7 +46,6 @@ pub fn get_fixed_text(text: Vec<&str>, rule: &str) -> String {
 
         let _ = Command::cargo_bin("flir")
             .unwrap()
-            .arg("--dir")
             .arg(temp_file.path())
             .arg("--rules")
             .arg(rule)
@@ -59,10 +57,8 @@ pub fn get_fixed_text(text: Vec<&str>, rule: &str) -> String {
         let modified_content = fs::read_to_string(temp_file).expect("Failed to read file content");
 
         output.push_str(
-            format!(
-                "\n\n  OLD:\n  ====\n{original_content}\n  NEW:\n  ====\n{modified_content}"
-            )
-            .as_str(),
+            format!("\n\n  OLD:\n  ====\n{original_content}\n  NEW:\n  ====\n{modified_content}")
+                .as_str(),
         );
     }
     output
@@ -81,7 +77,6 @@ pub fn no_lint(text: &str, rule: &str) -> bool {
 
     let _ = Command::cargo_bin("flir")
         .unwrap()
-        .arg("--dir")
         .arg(temp_file.path())
         .arg("--rules")
         .arg(rule)
@@ -90,7 +85,6 @@ pub fn no_lint(text: &str, rule: &str) -> bool {
 
     let output = Command::cargo_bin("flir")
         .unwrap()
-        .arg("--dir")
         .arg(temp_file.path())
         .arg("--rules")
         .arg(rule)
@@ -121,7 +115,6 @@ pub fn expect_error(text: &str, msg: &str, rule: &str) {
 
     let output = Command::cargo_bin("flir")
         .unwrap()
-        .arg("--dir")
         .arg(temp_file.path())
         .arg("--rules")
         .arg(rule)

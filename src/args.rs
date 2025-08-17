@@ -9,8 +9,6 @@ use clap::{Parser, arg};
 )]
 pub struct CliArgs {
     #[arg(
-        short,
-        long,
         default_value = ".",
         help = "The directory in which to check or fix lints."
     )]
