@@ -1,3 +1,4 @@
+use air_fs::relativize_path;
 use air_r_parser::RParserOptions;
 use air_r_syntax::RForStatementFields;
 use air_r_syntax::{
@@ -39,11 +40,12 @@ pub fn check_path(path: &PathBuf, config: Config) -> Result<Vec<Diagnostic>, any
 }
 
 pub fn lint_only(path: &PathBuf, config: Config) -> Result<Vec<Diagnostic>, anyhow::Error> {
-    let contents = fs::read_to_string(Path::new(path))
-        .with_context(|| format!("Failed to read file: {}", path.display()))?;
+    let path = relativize_path(path);
+    let contents = fs::read_to_string(Path::new(&path))
+        .with_context(|| format!("Failed to read file: {}", path))?;
 
-    let checks = get_checks(&contents, path, config.clone())
-        .with_context(|| format!("Failed to get checks for file: {}", path.display()))?;
+    let checks = get_checks(&contents, &PathBuf::from(&path), config.clone())
+        .with_context(|| format!("Failed to get checks for file: {}", path))?;
 
     Ok(checks)
 }
@@ -123,6 +125,10 @@ impl Checker {
 pub fn get_checks(contents: &str, file: &Path, config: Config) -> Result<Vec<Diagnostic>> {
     let parser_options = RParserOptions::default();
     let parsed = air_r_parser::parse(contents, parser_options);
+
+    if parsed.has_error() {
+        return Err(anyhow::anyhow!("Couldn't parse {}", file.to_string_lossy()));
+    }
 
     let syntax = &parsed.syntax();
     let expressions = &parsed.tree().expressions();
