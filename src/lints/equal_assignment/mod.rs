@@ -29,8 +29,6 @@ mod tests {
                     "blah = fun(1)",
                     "fun((blah = fun(1)))",
                     "1 -> fun",
-                    // TODO
-                    // "blah = fun(1) {",
                 ],
                 "equal_assignment",
                 None
