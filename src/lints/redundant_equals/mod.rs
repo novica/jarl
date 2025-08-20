@@ -9,14 +9,14 @@ mod tests {
         use insta::assert_snapshot;
         let expected_message = "Using == on a logical vector is";
 
-        expect_lint("a == TRUE", expected_message, "redundant_equals");
-        expect_lint("TRUE == a", expected_message, "redundant_equals");
-        expect_lint("a == FALSE", expected_message, "redundant_equals");
-        expect_lint("FALSE == a", expected_message, "redundant_equals");
-        expect_lint("a != TRUE", expected_message, "redundant_equals");
-        expect_lint("TRUE != a", expected_message, "redundant_equals");
-        expect_lint("a != FALSE", expected_message, "redundant_equals");
-        expect_lint("FALSE != a", expected_message, "redundant_equals");
+        expect_lint("a == TRUE", expected_message, "redundant_equals", None);
+        expect_lint("TRUE == a", expected_message, "redundant_equals", None);
+        expect_lint("a == FALSE", expected_message, "redundant_equals", None);
+        expect_lint("FALSE == a", expected_message, "redundant_equals", None);
+        expect_lint("a != TRUE", expected_message, "redundant_equals", None);
+        expect_lint("TRUE != a", expected_message, "redundant_equals", None);
+        expect_lint("a != FALSE", expected_message, "redundant_equals", None);
+        expect_lint("FALSE != a", expected_message, "redundant_equals", None);
 
         assert_snapshot!(
             "fix_output",
@@ -32,16 +32,17 @@ mod tests {
                     "FALSE != a",
                     "foo(a(b = 1)) == TRUE"
                 ],
-                "redundant_equals"
+                "redundant_equals",
+                None
             )
         );
     }
 
     #[test]
     fn test_no_lint_redundant_equals() {
-        expect_no_lint("x == 1", "redundant_equals");
-        expect_no_lint("x == 'TRUE'", "redundant_equals");
-        expect_no_lint("x == 'FALSE'", "redundant_equals");
-        expect_no_lint("x > 1", "redundant_equals");
+        expect_no_lint("x == 1", "redundant_equals", None);
+        expect_no_lint("x == 'TRUE'", "redundant_equals", None);
+        expect_no_lint("x == 'FALSE'", "redundant_equals", None);
+        expect_no_lint("x > 1", "redundant_equals", None);
     }
 }

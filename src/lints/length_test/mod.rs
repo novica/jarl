@@ -9,13 +9,13 @@ mod tests {
         use insta::assert_snapshot;
         let expected_message = "Checking the length of a logical vector";
 
-        expect_lint("length(x != 0)", expected_message, "length_test");
-        expect_lint("length(x >= 0)", expected_message, "length_test");
-        expect_lint("length(x <= 0)", expected_message, "length_test");
-        expect_lint("length(x > 0)", expected_message, "length_test");
-        expect_lint("length(x < 0)", expected_message, "length_test");
-        expect_lint("length(x < 0)", expected_message, "length_test");
-        expect_lint("length(x + y == 2)", expected_message, "length_test");
+        expect_lint("length(x != 0)", expected_message, "length_test", None);
+        expect_lint("length(x >= 0)", expected_message, "length_test", None);
+        expect_lint("length(x <= 0)", expected_message, "length_test", None);
+        expect_lint("length(x > 0)", expected_message, "length_test", None);
+        expect_lint("length(x < 0)", expected_message, "length_test", None);
+        expect_lint("length(x < 0)", expected_message, "length_test", None);
+        expect_lint("length(x + y == 2)", expected_message, "length_test", None);
 
         assert_snapshot!(
             "fix_output",
@@ -29,14 +29,15 @@ mod tests {
                     "length(x < 0)",
                     "length(x + y == 2)"
                 ],
-                "length_test"
+                "length_test",
+                None
             )
         );
     }
 
     #[test]
     fn test_no_lint_length_test() {
-        expect_no_lint("length(x) > 0", "length_test");
-        expect_no_lint("length(DF[key == val, cols])", "length_test");
+        expect_no_lint("length(x) > 0", "length_test", None);
+        expect_no_lint("length(DF[key == val, cols])", "length_test", None);
     }
 }

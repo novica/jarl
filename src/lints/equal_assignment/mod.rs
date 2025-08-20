@@ -9,11 +9,16 @@ mod tests {
         use insta::assert_snapshot;
 
         let expected_message = "Use <- for assignment";
-        expect_lint("blah=1", expected_message, "equal_assignment");
-        expect_lint("blah = 1", expected_message, "equal_assignment");
-        expect_lint("blah = fun(1)", expected_message, "equal_assignment");
-        expect_lint("fun((blah = fun(1)))", expected_message, "equal_assignment");
-        expect_lint("1 -> fun", expected_message, "equal_assignment");
+        expect_lint("blah=1", expected_message, "equal_assignment", None);
+        expect_lint("blah = 1", expected_message, "equal_assignment", None);
+        expect_lint("blah = fun(1)", expected_message, "equal_assignment", None);
+        expect_lint(
+            "fun((blah = fun(1)))",
+            expected_message,
+            "equal_assignment",
+            None,
+        );
+        expect_lint("1 -> fun", expected_message, "equal_assignment", None);
 
         assert_snapshot!(
             "fix_output",
@@ -28,14 +33,15 @@ mod tests {
                     // "blah = fun(1) {",
                 ],
                 "equal_assignment",
+                None
             )
         );
     }
 
     #[test]
     fn test_no_lint_equal_assignment() {
-        expect_no_lint("y <- 1", "equal_assignment");
-        expect_no_lint("fun(y = 1)", "equal_assignment");
-        expect_no_lint("y == 1", "equal_assignment");
+        expect_no_lint("y <- 1", "equal_assignment", None);
+        expect_no_lint("fun(y = 1)", "equal_assignment", None);
+        expect_no_lint("y == 1", "equal_assignment", None);
     }
 }

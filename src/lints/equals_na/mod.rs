@@ -10,15 +10,15 @@ mod tests {
 
         let expected_message = "instead of comparing to NA";
 
-        expect_lint("x == NA", expected_message, "equals_na");
-        expect_lint("x == NA_integer_", expected_message, "equals_na");
-        expect_lint("x == NA_real_", expected_message, "equals_na");
-        expect_lint("x == NA_logical_", expected_message, "equals_na");
-        expect_lint("x == NA_character_", expected_message, "equals_na");
-        expect_lint("x == NA_complex_", expected_message, "equals_na");
-        expect_lint("x != NA", expected_message, "equals_na");
-        expect_lint("foo(x(y)) == NA", expected_message, "equals_na");
-        expect_lint("NA == x", expected_message, "equals_na");
+        expect_lint("x == NA", expected_message, "equals_na", None);
+        expect_lint("x == NA_integer_", expected_message, "equals_na", None);
+        expect_lint("x == NA_real_", expected_message, "equals_na", None);
+        expect_lint("x == NA_logical_", expected_message, "equals_na", None);
+        expect_lint("x == NA_character_", expected_message, "equals_na", None);
+        expect_lint("x == NA_complex_", expected_message, "equals_na", None);
+        expect_lint("x != NA", expected_message, "equals_na", None);
+        expect_lint("foo(x(y)) == NA", expected_message, "equals_na", None);
+        expect_lint("NA == x", expected_message, "equals_na", None);
 
         assert_snapshot!(
             "fix_output",
@@ -35,23 +35,24 @@ mod tests {
                     "NA == x",
                 ],
                 "equals_na",
+                None,
             )
         );
     }
 
     #[test]
     fn test_no_lint_equals_na() {
-        expect_no_lint("x + NA", "equals_na");
-        expect_no_lint("x == \"NA\"", "equals_na");
-        expect_no_lint("x == 'NA'", "equals_na");
-        expect_no_lint("x <- NA", "equals_na");
-        expect_no_lint("x <- NaN", "equals_na");
-        expect_no_lint("x <- NA_real_", "equals_na");
-        expect_no_lint("is.na(x)", "equals_na");
-        expect_no_lint("is.nan(x)", "equals_na");
-        expect_no_lint("x[!is.na(x)]", "equals_na");
-        expect_no_lint("# x == NA", "equals_na");
-        expect_no_lint("'x == NA'", "equals_na");
-        expect_no_lint("x == f(NA)", "equals_na");
+        expect_no_lint("x + NA", "equals_na", None);
+        expect_no_lint("x == \"NA\"", "equals_na", None);
+        expect_no_lint("x == 'NA'", "equals_na", None);
+        expect_no_lint("x <- NA", "equals_na", None);
+        expect_no_lint("x <- NaN", "equals_na", None);
+        expect_no_lint("x <- NA_real_", "equals_na", None);
+        expect_no_lint("is.na(x)", "equals_na", None);
+        expect_no_lint("is.nan(x)", "equals_na", None);
+        expect_no_lint("x[!is.na(x)]", "equals_na", None);
+        expect_no_lint("# x == NA", "equals_na", None);
+        expect_no_lint("'x == NA'", "equals_na", None);
+        expect_no_lint("x == f(NA)", "equals_na", None);
     }
 }

@@ -6,9 +6,9 @@ mod tests {
 
     #[test]
     fn test_no_lint_grepv() {
-        expect_no_lint("grep('i', x)", "grepv");
-        expect_no_lint("grep(pattern = 'i', x)", "grepv");
-        expect_no_lint("grep('i', x, TRUE, TRUE)", "grepv");
+        expect_no_lint("grep('i', x)", "grepv", Some("4.5"));
+        expect_no_lint("grep(pattern = 'i', x)", "grepv", Some("4.5"));
+        expect_no_lint("grep('i', x, TRUE, TRUE)", "grepv", Some("4.5"));
     }
 
     #[test]
@@ -16,27 +16,27 @@ mod tests {
         use insta::assert_snapshot;
 
         let expected_message = "Use `grepv(...)`";
-        has_lint_with_version(
+        has_lint(
             "grep('i', x, value = TRUE)",
             expected_message,
             "grepv",
-            "4.5",
+            Some("4.5"),
         );
-        has_lint_with_version(
+        has_lint(
             "grep('i', x, TRUE, TRUE, TRUE)",
             expected_message,
             "grepv",
-            "4.5",
+            Some("4.5"),
         );
-        has_lint_with_version(
+        has_lint(
             "grep('i', x, TRUE, TRUE, TRUE, value = TRUE)",
             expected_message,
             "grepv",
-            "4.5",
+            Some("4.5"),
         );
         assert_snapshot!(
             "fix_output",
-            get_fixed_text_with_version(
+            get_fixed_text(
                 vec![
                     "grep('i', x, value = TRUE)",
                     "grep('i', x, TRUE, TRUE, TRUE)",
@@ -47,7 +47,7 @@ mod tests {
                     "grep(value = TRUE)",
                 ],
                 "grepv",
-                "4.5"
+                Some("4.5")
             )
         );
     }

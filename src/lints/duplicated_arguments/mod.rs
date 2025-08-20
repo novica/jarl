@@ -6,16 +6,21 @@ mod tests {
 
     #[test]
     fn test_no_lint_duplicated_arguments() {
-        expect_no_lint("fun(arg = 1)", "duplicated_arguments");
-        expect_no_lint("fun('arg' = 1)", "duplicated_arguments");
-        expect_no_lint("fun(`arg` = 1)", "duplicated_arguments");
-        expect_no_lint("'fun'(arg = 1)", "duplicated_arguments");
-        expect_no_lint("(function(x, y) x + y)(x = 1)", "duplicated_arguments");
+        expect_no_lint("fun(arg = 1)", "duplicated_arguments", None);
+        expect_no_lint("fun('arg' = 1)", "duplicated_arguments", None);
+        expect_no_lint("fun(`arg` = 1)", "duplicated_arguments", None);
+        expect_no_lint("'fun'(arg = 1)", "duplicated_arguments", None);
+        expect_no_lint(
+            "(function(x, y) x + y)(x = 1)",
+            "duplicated_arguments",
+            None,
+        );
         expect_no_lint(
             "fun(x = (function(x) x + 1), y = 1)",
             "duplicated_arguments",
+            None,
         );
-        expect_no_lint("dt[i = 1]", "duplicated_arguments");
+        expect_no_lint("dt[i = 1]", "duplicated_arguments", None);
     }
 
     #[test]
@@ -25,36 +30,43 @@ mod tests {
             "fun(arg = 1, arg = 2)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "fun(arg = 1, 'arg' = 2)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "fun(arg = 1, `arg` = 2)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "'fun'(arg = 1, arg = 2)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "list(a = 1, a = 2)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "foo(a = 1, a = function(x) 1)",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "foo(a = 1, a = (function(x) x + 1))",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         // TODO
         // assert!(expect_lint(
@@ -66,8 +78,12 @@ mod tests {
 
     #[test]
     fn test_duplicated_arguments_accepted_functions() {
-        expect_no_lint("dplyr::mutate(x, a = 1, a = 2)", "duplicated_arguments");
-        expect_no_lint("transmute(x, a = 1, a = 2)", "duplicated_arguments");
+        expect_no_lint(
+            "dplyr::mutate(x, a = 1, a = 2)",
+            "duplicated_arguments",
+            None,
+        );
+        expect_no_lint("transmute(x, a = 1, a = 2)", "duplicated_arguments", None);
     }
 
     #[test]
@@ -78,12 +94,13 @@ mod tests {
             baz(a = 1)
         })",
             "duplicated_arguments",
+            None,
         );
     }
 
     #[test]
     fn test_duplicated_arguments_no_args() {
-        expect_no_lint("foo()", "duplicated_arguments");
+        expect_no_lint("foo()", "duplicated_arguments", None);
     }
 
     #[test]
@@ -99,6 +116,7 @@ mod tests {
               )",
             expected_message,
             "duplicated_arguments",
+            None,
         );
         expect_lint(
             "fun(
@@ -109,6 +127,7 @@ mod tests {
               )",
             expected_message,
             "duplicated_arguments",
+            None,
         );
     }
 }

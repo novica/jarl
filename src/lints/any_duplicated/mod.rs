@@ -6,12 +6,12 @@ mod tests {
 
     #[test]
     fn test_no_lint_any_duplicated() {
-        expect_no_lint("any(x)", "any_duplicated");
-        expect_no_lint("duplicated(x)", "any_duplicated");
-        expect_no_lint("any(!duplicated(x))", "any_duplicated");
-        expect_no_lint("any(!duplicated(foo(x)))", "any_duplicated");
-        expect_no_lint("any(na.rm = TRUE)", "any_duplicated");
-        expect_no_lint("any()", "any_duplicated");
+        expect_no_lint("any(x)", "any_duplicated", None);
+        expect_no_lint("duplicated(x)", "any_duplicated", None);
+        expect_no_lint("any(!duplicated(x))", "any_duplicated", None);
+        expect_no_lint("any(!duplicated(foo(x)))", "any_duplicated", None);
+        expect_no_lint("any(na.rm = TRUE)", "any_duplicated", None);
+        expect_no_lint("any()", "any_duplicated", None);
     }
 
     #[test]
@@ -19,26 +19,35 @@ mod tests {
         use insta::assert_snapshot;
 
         let expected_message = "`any(duplicated(...))` is inefficient";
-        expect_lint("any(duplicated(x))", expected_message, "any_duplicated");
+        expect_lint(
+            "any(duplicated(x))",
+            expected_message,
+            "any_duplicated",
+            None,
+        );
         expect_lint(
             "any(duplicated(foo(x)))",
             expected_message,
             "any_duplicated",
+            None,
         );
         expect_lint(
             "any(duplicated(x), na.rm = TRUE)",
             expected_message,
             "any_duplicated",
+            None,
         );
         expect_lint(
             "any(na.rm = TRUE, duplicated(x))",
             expected_message,
             "any_duplicated",
+            None,
         );
         expect_lint(
             "any(duplicated(x)); 1 + 1; any(duplicated(y))",
             expected_message,
             "any_duplicated",
+            None,
         );
         assert_snapshot!(
             "fix_output",
@@ -49,6 +58,7 @@ mod tests {
                     "any(duplicated(x), na.rm = TRUE)",
                 ],
                 "any_duplicated",
+                None
             )
         );
     }
