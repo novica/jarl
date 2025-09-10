@@ -71,7 +71,7 @@ for (repos in all_repos) {
   ]
 
   paste0(
-    "<details><summary><a href=\"https://github.com/",
+    "### Ecosystem checks\n\n<details><summary><a href=\"https://github.com/",
     repos,
     "\">",
     repos,
