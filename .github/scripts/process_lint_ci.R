@@ -3,21 +3,28 @@ suppressPackageStartupMessages({
   library(jsonlite)
 })
 
-all_files <- list.files("results", pattern = "\\.json$", full.names = TRUE)
+all_files <- list.files(
+  "flir-json-results",
+  pattern = "\\.json$",
+  full.names = TRUE
+)
 all_files_name <- basename(all_files)
 
 all_repos <- sub("^([^_]+)_([^_]+)_.*\\.json$", "\\1/\\2", all_files_name) |>
   unique()
 
+
+cat("### Ecosystem checks\n\n", file = "lint_comparison.md")
+
 for (repos in all_repos) {
   message("Processing results of ", repos)
   main_results_json <- jsonlite::read_json(paste0(
-    "results/",
+    "flir-json-results/",
     gsub("/", "_", repos),
     "_main.json"
   ))
   pr_results_json <- jsonlite::read_json(paste0(
-    "results/",
+    "flir-json-results/",
     gsub("/", "_", repos),
     "_pr.json"
   ))
@@ -70,55 +77,52 @@ for (repos in all_repos) {
     on = .(name, filename, row, column)
   ]
 
-  c(
-    "### Ecosystem checks\n\n",
-    paste0(
-      "<details><summary><a href=\"https://github.com/",
-      repos,
-      "\">",
-      repos,
-      "</a>: +",
-      nrow(new_lints),
-      " -",
-      nrow(deleted_lints),
-      " violations</summary>\n\n",
-  
-      if (nrow(new_lints) > 0) {
-        c(
-          "\n\nNew violations:<pre>\n",
-          paste0(
-            new_lints$filename,
-            "[",
-            new_lints$row,
-            ":",
-            new_lints$column,
-            "]: ",
-            new_lints$name,
-            " -- ",
-            new_lints$body,
-            "\n"
-          )
+  paste0(
+    "<details><summary><a href=\"https://github.com/",
+    repos,
+    "\">",
+    repos,
+    "</a>: +",
+    nrow(new_lints),
+    " -",
+    nrow(deleted_lints),
+    " violations</summary>\n\n",
+
+    if (nrow(new_lints) > 0) {
+      c(
+        "\n\nNew violations:<pre>\n",
+        paste0(
+          new_lints$filename,
+          "[",
+          new_lints$row,
+          ":",
+          new_lints$column,
+          "]: ",
+          new_lints$name,
+          " -- ",
+          new_lints$body,
+          "\n"
         )
-      },
-      if (nrow(deleted_lints) > 0) {
-        c(
-          "\n\nViolations removed:<pre>\n",
-          paste0(
-            deleted_lints$filename,
-            "[",
-            deleted_lints$row,
-            ":",
-            deleted_lints$column,
-            "]: ",
-            deleted_lints$name,
-            " -- ",
-            deleted_lints$body,
-            "\n"
-          )
+      )
+    },
+    if (nrow(deleted_lints) > 0) {
+      c(
+        "\n\nViolations removed:<pre>\n",
+        paste0(
+          deleted_lints$filename,
+          "[",
+          deleted_lints$row,
+          ":",
+          deleted_lints$column,
+          "]: ",
+          deleted_lints$name,
+          " -- ",
+          deleted_lints$body,
+          "\n"
         )
-      },
-      "</pre></details>\n\n"
-    )
+      )
+    },
+    "</pre></details>\n\n"
   ) |>
     cat(file = "lint_comparison.md", append = TRUE)
 }
