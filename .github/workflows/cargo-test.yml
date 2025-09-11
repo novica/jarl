@@ -2,7 +2,19 @@ name: Cargo Build & Test
 
 on:
   push:
+    paths:
+      - .github/workflows/cargo-test.yml
+      - Cargo.toml
+      - dist-workspace.toml
+      - src/**
+      - tests/**
   pull_request:
+    paths:
+      - .github/workflows/cargo-test.yml
+      - Cargo.toml
+      - dist-workspace.toml
+      - src/**
+      - tests/**
 
 env:
   CARGO_TERM_COLOR: always

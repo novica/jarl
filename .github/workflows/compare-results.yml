@@ -2,6 +2,9 @@ name: Ecosystem check
 
 on:
   pull_request:
+    paths:
+      - .github/workflows/compare-results.yml
+      - src/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
