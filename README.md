@@ -5,7 +5,7 @@
 ## Installation
 
 > [!WARNING]
-> While the repo is private, I recommend not using the binaries provided in the Releases. Those are not 
+> While the repo is private, I recommend not using the binaries provided in the Releases. Those are not
 > frequently updated due to limitations in Github Actions on private repos.
 >
 > For now, the best way to get the binary is to clone the repo and build the binary from source with
@@ -13,13 +13,13 @@
 
 macOS and Linux:
 ```
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/etiennebacher/flir2/releases/download/v0.0.15/flir-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/etiennebacher/flir2/releases/download/v0.0.16/flir-installer.sh | sh
 ```
 
 Windows:
 
 ```
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/etiennebacher/flir2/releases/download/v0.0.15/flir-installer.ps1 | iex"
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/etiennebacher/flir2/releases/download/v0.0.16/flir-installer.ps1 | iex"
 ```
 
 Alternatively, if you have Rust installed, you can get the development version with:
