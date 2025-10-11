@@ -51,4 +51,23 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn test_grepv_with_comments_no_fix() {
+        use insta::assert_snapshot;
+        // Should detect lint but skip fix when comments are present to avoid destroying them
+        assert_snapshot!(
+            "no_fix_with_comments",
+            get_fixed_text(
+                vec![
+                    "# leading comment\ngrep('i', x, value = TRUE)",
+                    "grep(\n  # comment\n  'i', x, value = TRUE\n)",
+                    "grep('i',\n    # comment\n    x, value = TRUE)",
+                    "grep('i', x, value = TRUE) # trailing comment",
+                ],
+                "grepv",
+                Some("4.5")
+            )
+        );
+    }
 }

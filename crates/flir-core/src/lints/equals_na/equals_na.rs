@@ -1,4 +1,5 @@
 use crate::diagnostic::*;
+use crate::utils::node_contains_comments;
 use air_r_syntax::*;
 use biome_rowan::AstNode;
 
@@ -42,9 +43,9 @@ impl Violation for EqualsNa {
 pub fn equals_na(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>> {
     let RBinaryExpressionFields { left, operator, right } = ast.as_fields();
 
-    let left = left?;
+    let left = left?.to_trimmed_string();
     let operator = operator?;
-    let right = right?;
+    let right = right?.to_trimmed_string();
 
     if operator.kind() != RSyntaxKind::EQUAL2 && operator.kind() != RSyntaxKind::NOT_EQUAL {
         return Ok(None);
@@ -83,6 +84,7 @@ pub fn equals_na(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>> 
                 content: format!("is.na({replacement})"),
                 start: range.start().into(),
                 end: range.end().into(),
+                to_skip: node_contains_comments(ast.syntax()),
             },
         ),
         RSyntaxKind::NOT_EQUAL => Diagnostic::new(
@@ -92,6 +94,7 @@ pub fn equals_na(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>> 
                 content: format!("!is.na({replacement})"),
                 start: range.start().into(),
                 end: range.end().into(),
+                to_skip: node_contains_comments(ast.syntax()),
             },
         ),
         _ => unreachable!("This case is an early return"),
