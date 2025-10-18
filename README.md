@@ -28,6 +28,6 @@ cargo install --git https://github.com/etiennebacher/jarl
 * [`lintr` authors and contributors](https://lintr.r-lib.org/authors.html): while the infrastructure is completely different, all the rule definitions and a large part of the tests are inspired or taken from `lintr`.
 * Davis Vaughan and Lionel Henry, both for their work on Air and for their advices and answers to my questions during the development of `jarl`.
 * R Consortium for funding part of the development of `jarl`.
-
+* the design of Jarl is heavily inspired by [Ruff](https://docs.astral.sh/ruff).
 
 ![](r-consortium-logo.png)

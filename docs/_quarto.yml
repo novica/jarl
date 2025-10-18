@@ -29,6 +29,10 @@ website:
     left:
     - text: Home
       href: index.qmd
+    - text: Using Jarl
+      href: using-jarl.md
+    - text: Configuration
+      href: config.md
     - text: Rules
       href: rules.md
     - text: About
