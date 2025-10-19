@@ -253,7 +253,8 @@ pub fn parse_rules_toml(
 
 // This takes rules that refer to groups (e.g. "PERF", "READ") and replaces them
 // with the rule names.
-// Returns (expanded_rules, original_to_trimmed_map) for error reporting
+// Returns a vector with the original rule names left unmodified and the expanded
+// group names.
 fn replace_group_rules(rules_passed_by_user: &Vec<&str>, all_rules: &RuleTable) -> Vec<String> {
     let rule_groups_set: HashSet<&str> = RULE_GROUPS.iter().copied().collect();
     let mut expanded_rules = Vec::new();
