@@ -30,12 +30,12 @@ Options:
           Apply fixes even if there is no version control system.
 
   -s, --select-rules <SELECT_RULES>
-          Names of rules to include, separated by a comma (no spaces).
+          Names of rules to include, separated by a comma (no spaces). This also accepts names of groups of rules, such as "PERF".
           
           [default: ]
 
   -i, --ignore-rules <IGNORE_RULES>
-          Names of rules to exclude, separated by a comma (no spaces).
+          Names of rules to exclude, separated by a comma (no spaces). This also accepts names of groups of rules, such as "PERF".
           
           [default: ]
 

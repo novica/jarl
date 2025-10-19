@@ -70,14 +70,14 @@ pub struct CheckCommand {
         short,
         long,
         default_value = "",
-        help = "Names of rules to include, separated by a comma (no spaces)."
+        help = "Names of rules to include, separated by a comma (no spaces). This also accepts names of groups of rules, such as \"PERF\"."
     )]
     pub select_rules: String,
     #[arg(
         short,
         long,
         default_value = "",
-        help = "Names of rules to exclude, separated by a comma (no spaces)."
+        help = "Names of rules to exclude, separated by a comma (no spaces). This also accepts names of groups of rules, such as \"PERF\"."
     )]
     pub ignore_rules: String,
     #[arg(

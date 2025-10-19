@@ -1,5 +1,7 @@
 use crate::{
-    description::Description, lints::all_rules_and_safety, rule_table::RuleTable,
+    description::Description,
+    lints::{RULE_GROUPS, all_rules_and_safety},
+    rule_table::RuleTable,
     settings::Settings,
 };
 use air_workspace::resolve::PathResolver;
@@ -146,7 +148,8 @@ pub fn parse_rules_cli(
         None
     } else {
         let passed_by_user = select_rules.split(",").collect::<Vec<&str>>();
-        let invalid_rules = get_invalid_rules(&all_rules, &passed_by_user);
+        let expanded_rules = replace_group_rules(&passed_by_user, &all_rules);
+        let invalid_rules = get_invalid_rules(&all_rules, &expanded_rules);
         if let Some(invalid_rules) = invalid_rules {
             return Err(anyhow::anyhow!(
                 "Unknown rules in `--select-rules`: {}",
@@ -157,7 +160,7 @@ pub fn parse_rules_cli(
         Some(HashSet::from_iter(
             all_rules
                 .iter()
-                .filter(|r| passed_by_user.contains(&r.name.as_str()))
+                .filter(|r| expanded_rules.contains(&r.name))
                 .map(|x| x.name.clone()),
         ))
     };
@@ -166,7 +169,8 @@ pub fn parse_rules_cli(
         HashSet::new()
     } else {
         let passed_by_user = ignore_rules.split(",").collect::<Vec<&str>>();
-        let invalid_rules = get_invalid_rules(&all_rules, &passed_by_user);
+        let expanded_rules = replace_group_rules(&passed_by_user, &all_rules);
+        let invalid_rules = get_invalid_rules(&all_rules, &expanded_rules);
         if let Some(invalid_rules) = invalid_rules {
             return Err(anyhow::anyhow!(
                 "Unknown rules in `--ignore-rules`: {}",
@@ -177,7 +181,7 @@ pub fn parse_rules_cli(
         HashSet::from_iter(
             all_rules
                 .iter()
-                .filter(|r| passed_by_user.contains(&r.name.as_str()))
+                .filter(|r| expanded_rules.contains(&r.name))
                 .map(|x| x.name.clone()),
         )
     };
@@ -204,39 +208,107 @@ pub fn parse_rules_toml(
     // Handle select rules from TOML
     let selected_rules: Option<HashSet<String>> =
         if let Some(select_rules) = &linter_settings.select {
-            let invalid_rules = get_invalid_rules(
-                &all_rules,
-                &select_rules.iter().map(|s| s.as_str()).collect(),
-            );
+            let passed_by_user = select_rules.iter().map(|s| s.as_str()).collect();
+            let expanded_rules = replace_group_rules(&passed_by_user, &all_rules);
+            let invalid_rules = get_invalid_rules(&all_rules, &expanded_rules);
             if let Some(invalid_rules) = invalid_rules {
                 return Err(anyhow::anyhow!(
                     "Unknown rules in field `select` in 'jarl.toml': {}",
                     invalid_rules.join(", ")
                 ));
             }
-            Some(HashSet::from_iter(select_rules.iter().cloned()))
+            Some(HashSet::from_iter(
+                all_rules
+                    .iter()
+                    .filter(|r| expanded_rules.contains(&r.name))
+                    .map(|x| x.name.clone()),
+            ))
         } else {
             None
         };
 
     // Handle ignore rules from TOML
     let ignored_rules: HashSet<String> = if let Some(ignore_rules) = &linter_settings.ignore {
-        let invalid_rules = get_invalid_rules(
-            &all_rules,
-            &ignore_rules.iter().map(|s| s.as_str()).collect(),
-        );
+        let passed_by_user = ignore_rules.iter().map(|s| s.as_str()).collect();
+        let expanded_rules = replace_group_rules(&passed_by_user, &all_rules);
+        let invalid_rules = get_invalid_rules(&all_rules, &expanded_rules);
         if let Some(invalid_rules) = invalid_rules {
             return Err(anyhow::anyhow!(
                 "Unknown rules in field `ignore` in 'jarl.toml': {}",
                 invalid_rules.join(", ")
             ));
         }
-        HashSet::from_iter(ignore_rules.iter().cloned())
+        HashSet::from_iter(
+            all_rules
+                .iter()
+                .filter(|r| expanded_rules.contains(&r.name))
+                .map(|x| x.name.clone()),
+        )
     } else {
         HashSet::new()
     };
 
     Ok((selected_rules, ignored_rules))
+}
+
+// This takes rules that refer to groups (e.g. "PERF", "READ") and replaces them
+// with the rule names.
+// Returns (expanded_rules, original_to_trimmed_map) for error reporting
+fn replace_group_rules(rules_passed_by_user: &Vec<&str>, all_rules: &RuleTable) -> Vec<String> {
+    let rule_groups_set: HashSet<&str> = RULE_GROUPS.iter().copied().collect();
+    let mut expanded_rules = Vec::new();
+
+    for &rule_or_group in rules_passed_by_user {
+        let trimmed = rule_or_group.trim();
+
+        if rule_groups_set.contains(trimmed) {
+            // This is a group name, expand it to all rules in that group
+            for rule in all_rules.iter() {
+                if rule.categories.iter().any(|cat| cat == trimmed) {
+                    expanded_rules.push(rule.name.clone());
+                }
+            }
+        } else {
+            // This is a rule name (or invalid input), keep as-is
+            expanded_rules.push(trimmed.to_string());
+        }
+    }
+    expanded_rules
+}
+
+// This finds invalid rule names and throws an error with their names in the
+// message.
+//
+// It is important this comes after expanding group names (e.g. "PERF") to
+// individual rule names.
+fn get_invalid_rules(
+    all_rule_names: &RuleTable,
+    rules_passed_by_user: &Vec<String>,
+) -> Option<Vec<String>> {
+    let all_rules_set: HashSet<_> = all_rule_names.iter().map(|x| x.name.clone()).collect();
+
+    let invalid_rules: Vec<String> = rules_passed_by_user
+        .iter()
+        .filter(|rule| {
+            let trimmed = rule.trim();
+            // Rule is invalid if it's empty/whitespace-only or doesn't exist in valid rules
+            trimmed.is_empty() || !all_rules_set.contains(trimmed)
+        })
+        .map(|x| {
+            let trimmed = x.trim();
+            if trimmed.is_empty() {
+                format!("\"{x}\" (empty or whitespace-only not allowed)")
+            } else {
+                x.clone()
+            }
+        })
+        .collect();
+
+    if invalid_rules.is_empty() {
+        None
+    } else {
+        Some(invalid_rules)
+    }
 }
 
 /// Reconcile rules from CLI and TOML configuration.
@@ -374,35 +446,5 @@ fn filter_rules_by_version(
                 .cloned()
                 .collect::<RuleTable>()
         }
-    }
-}
-
-fn get_invalid_rules(
-    all_rule_names: &RuleTable,
-    rules_passed_by_user: &Vec<&str>,
-) -> Option<Vec<String>> {
-    let all_rules_set: HashSet<_> = all_rule_names.iter().map(|x| x.name.clone()).collect();
-
-    let invalid_rules: Vec<String> = rules_passed_by_user
-        .iter()
-        .filter(|rule| {
-            let trimmed = rule.trim();
-            // Rule is invalid if it's empty/whitespace-only or doesn't exist in valid rules
-            trimmed.is_empty() || !all_rules_set.contains(trimmed)
-        })
-        .map(|x| {
-            let trimmed = x.trim();
-            if trimmed.is_empty() {
-                format!("\"{x}\" (empty or whitespace-only not allowed)")
-            } else {
-                x.to_string()
-            }
-        })
-        .collect();
-
-    if invalid_rules.is_empty() {
-        None
-    } else {
-        Some(invalid_rules)
     }
 }

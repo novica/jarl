@@ -1,0 +1,16 @@
+---
+source: crates/jarl-cli/tests/integration/rules.rs
+expression: "&mut\nCommand::new(binary_path()).current_dir(directory).arg(\"check\").arg(\".\").arg(\"--select-rules\").arg(\"SUSP\").arg(\"--ignore-rules\").arg(\"PERF\").run().normalize_os_executable_name()"
+---
+success: false
+exit_code: 1
+----- stdout -----
+test.R [3:1] all_equal Wrap `all.equal()` in `isTRUE()`, or replace it by `identical()` if no tolerance is required.
+
+Found 1 error.
+1 fix is available with the `--fix --unsafe-fixes` option.
+
+----- stderr -----
+
+----- args -----
+check . --select-rules SUSP --ignore-rules PERF

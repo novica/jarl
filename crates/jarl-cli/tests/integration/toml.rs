@@ -171,6 +171,40 @@ select = ["any_is_na"]
 }
 
 #[test]
+fn test_toml_select_rules_with_group() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    // TOML that only selects any_is_na rule
+    std::fs::write(
+        directory.join("jarl.toml"),
+        r#"
+[linter]
+select = ["any_is_na", "SUSP"]
+"#,
+    )?;
+
+    let test_path = "test.R";
+    let test_contents = "
+any(is.na(x))
+any(duplicated(x))
+!all.equal(x, y)
+";
+    std::fs::write(directory.join(test_path), test_contents)?;
+
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("check")
+            .arg(".")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    Ok(())
+}
+
+#[test]
 fn test_toml_ignore_rules() -> anyhow::Result<()> {
     let directory = TempDir::new()?;
     let directory = directory.path();

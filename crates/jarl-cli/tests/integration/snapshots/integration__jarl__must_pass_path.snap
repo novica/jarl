@@ -20,8 +20,8 @@ Options:
       --fix-only                       Apply fixes to resolve lint violations, but don't report on leftover violations. Implies `--fix`.
       --allow-dirty                    Apply fixes even if the Git branch is not clean, meaning that there are uncommitted files.
       --allow-no-vcs                   Apply fixes even if there is no version control system.
-  -s, --select-rules <SELECT_RULES>    Names of rules to include, separated by a comma (no spaces). [default: ]
-  -i, --ignore-rules <IGNORE_RULES>    Names of rules to exclude, separated by a comma (no spaces). [default: ]
+  -s, --select-rules <SELECT_RULES>    Names of rules to include, separated by a comma (no spaces). This also accepts names of groups of rules, such as "PERF". [default: ]
+  -i, --ignore-rules <IGNORE_RULES>    Names of rules to exclude, separated by a comma (no spaces). This also accepts names of groups of rules, such as "PERF". [default: ]
   -w, --with-timing                    Show the time taken by the function.
   -m, --min-r-version <MIN_R_VERSION>  The mimimum R version to be used by the linter. Some rules only work starting from a specific version.
       --output-format <OUTPUT_FORMAT>  Output serialization format for violations. [default: concise] [possible values: concise, github, json]
