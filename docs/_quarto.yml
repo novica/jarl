@@ -37,8 +37,8 @@ website:
       href: config.md
     - text: Rules
       href: rules.md
-    - text: About
-      href: about.md
+    - text: Contributing
+      href: contributing.md
   sidebar:
   - title: Rules
     style: floating
