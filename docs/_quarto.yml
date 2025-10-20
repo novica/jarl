@@ -1,5 +1,6 @@
 project:
   type: website
+  pre-render: copy_readme.R
 filters:
   - newpagelink.lua
 format:
@@ -30,7 +31,7 @@ website:
       aria-label: GitHub
     left:
     - text: Home
-      href: index.qmd
+      href: index.md
     - text: Using Jarl
       href: using-jarl.md
     - text: Configuration
