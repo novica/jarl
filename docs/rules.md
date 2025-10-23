@@ -2,12 +2,21 @@
 
 All rules belong to at least one category:
 
--   CORR: correctness, code that is outright wrong or useless
--   SUSP: suspicious, code that is most likely wrong or useless
--   PERF: performance, code that can be written to run faster
+-   CORR: correctness, code that is outright wrong or useless.
+-   SUSP: suspicious, code that is most likely wrong or useless.
+-   PERF: performance, code that can be written to run faster.
 -   READ: readability, code is correct but can be written in a way that is easier to read.
 
 You can find the list of available rules below, and more detailed explanations and examples in pages in the sidebar.
+
+::: {.callout-note}
+## Comparison to `lintr`
+
+`lintr` includes many rules related to code formatting, such as [`brace_linter`](https://lintr.r-lib.org/dev/reference/brace_linter.html), [`line_length_linter`](https://lintr.r-lib.org/dev/reference/line_length_linter.html), and [`paren_body_linter`](https://lintr.r-lib.org/dev/reference/paren_body_linter.html), among others.
+
+**Supporting those rules is not an objective of Jarl.**
+Instead, I recommend using the [Air formatter](https://posit-dev.github.io/air/).
+:::
 
 The column "Has fix?" can take the following values:
 
