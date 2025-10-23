@@ -1,13 +1,13 @@
 ---
 source: crates/jarl-core/src/lints/class_equals/mod.rs
-expression: "get_unsafe_fixed_text(vec![\"is_regression <- class(x) == 'lm'\",\n\"if (class(x) == 'character') 1\", \"is_regression <- 'lm' == class(x)\",\n\"is_regression <- \\\"lm\\\" == class(x)\", \"if ('character' %in% class(x)) 1\",\n\"if (class(x) %in% 'character') 1\", \"if (class(x) != 'character') 1\",\n\"x[if (class(x) == 'foo') 1 else 2]\", \"class(foo(bar(y) + 1)) == 'abc'\",],\n\"class_equals\")"
+expression: "get_fixed_text(vec![\"is_regression <- class(x) == 'lm'\",\n\"if (class(x) == 'character') 1\", \"is_regression <- 'lm' == class(x)\",\n\"is_regression <- \\\"lm\\\" == class(x)\", \"if ('character' %in% class(x)) 1\",\n\"if (class(x) %in% 'character') 1\", \"if (class(x) != 'character') 1\",\n\"while (class(x) != 'character') 1\", \"x[if (class(x) == 'foo') 1 else 2]\",\n\"if (class(foo(bar(y) + 1)) == 'abc') 1\",\n\"if (my_fun(class(x) != 'character')) 1\",], \"class_equals\", None)"
 ---
 OLD:
 ====
 is_regression <- class(x) == 'lm'
 NEW:
 ====
-is_regression <- inherits(x, 'lm')
+is_regression <- class(x) == 'lm'
 
 OLD:
 ====
@@ -21,14 +21,14 @@ OLD:
 is_regression <- 'lm' == class(x)
 NEW:
 ====
-is_regression <- inherits(x, 'lm')
+is_regression <- 'lm' == class(x)
 
 OLD:
 ====
 is_regression <- "lm" == class(x)
 NEW:
 ====
-is_regression <- inherits(x, "lm")
+is_regression <- "lm" == class(x)
 
 OLD:
 ====
@@ -53,6 +53,13 @@ if (!inherits(x, 'character')) 1
 
 OLD:
 ====
+while (class(x) != 'character') 1
+NEW:
+====
+while (!inherits(x, 'character')) 1
+
+OLD:
+====
 x[if (class(x) == 'foo') 1 else 2]
 NEW:
 ====
@@ -60,7 +67,14 @@ x[if (inherits(x, 'foo')) 1 else 2]
 
 OLD:
 ====
-class(foo(bar(y) + 1)) == 'abc'
+if (class(foo(bar(y) + 1)) == 'abc') 1
 NEW:
 ====
-inherits(foo(bar(y) + 1), 'abc')
+if (inherits(foo(bar(y) + 1), 'abc')) 1
+
+OLD:
+====
+if (my_fun(class(x) != 'character')) 1
+NEW:
+====
+if (my_fun(class(x) != 'character')) 1

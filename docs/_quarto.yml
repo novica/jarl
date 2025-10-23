@@ -1,8 +1,7 @@
 project:
   type: website
   pre-render: copy_readme.R
-filters:
-  - newpagelink.lua
+filters: newpagelink.lua
 format:
   html:
     theme: morph

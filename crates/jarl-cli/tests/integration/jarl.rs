@@ -350,7 +350,7 @@ fn test_safe_and_unsafe_lints() -> anyhow::Result<()> {
     std::fs::write(directory.join(test_path), test_contents)?;
 
     let test_path_2 = "test2.R";
-    let test_contents_2 = "class(x) == 'a'";
+    let test_contents_2 = "!all.equal(x, y)";
     std::fs::write(directory.join(test_path_2), test_contents_2)?;
 
     insta::assert_snapshot!(

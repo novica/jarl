@@ -8,7 +8,15 @@ pub struct ClassEquals;
 /// ## What it does
 ///
 /// Checks for usage of `class(...) == "some_class"` and
-/// `class(...) %in% "some_class"`.
+/// `class(...) %in% "some_class"`. The only cases that are flagged (and
+/// potentially fixed) are cases that:
+///
+/// - happen in the condition part of an `if ()` statement or of a `while ()`
+///   statement,
+/// - and are not nested in other calls.
+///
+/// For example, `if (class(x) == "foo")` would be reported, but not
+/// `if (my_function(class(x) == "foo"))`.
 ///
 /// ## Why is this bad?
 ///
@@ -27,7 +35,9 @@ pub struct ClassEquals;
 /// x <- lm(drat ~ mpg, mtcars)
 /// class(x) <- c("my_class", class(x))
 ///
-/// class(x) == "lm"
+/// if (class(x) == "lm") {
+///   # <do something>
+/// }
 /// ```
 ///
 /// Use instead:
@@ -35,7 +45,9 @@ pub struct ClassEquals;
 /// x <- lm(drat ~ mpg, mtcars)
 /// class(x) <- c("my_class", class(x))
 ///
-/// inherits(x, "lm")
+/// if (inherits(x, "lm")) {
+///   # <do something>
+/// }
 /// ```
 ///
 /// ## References
@@ -64,6 +76,41 @@ pub fn class_equals(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic
     {
         return Ok(None);
     };
+
+    // We want to skip cases like the following where we don't know exactly
+    // how the `class(x) == "foo"` is used for.
+    // ```r
+    // x <- 1
+    // class(x) <- c("foo", "bar")
+    //
+    // which_to_subset <- class(x) == "foo"
+    // which_to_subset_2 <- inherits(x, "foo")
+    //
+    // class(x)[which_to_subset]
+    // #> [1] "foo"
+    // class(x)[which_to_subset_2]
+    // #> [1] "foo" "bar"
+    // ```
+    //
+    // We report only cases where we know this is incorrect:
+    // - in the condition of an RIfStatement;
+    // - in the condition of an RWhileStatement.
+    //
+    //
+    // The `condition` part of an `RIfStatement` is always the 3th node
+    // (index 2):
+    // IF_KW - L_PAREN - [condition] - R_PAREN - [consequence]
+    let parent_is_if = ast.syntax().parent().unwrap().kind() == RSyntaxKind::R_IF_STATEMENT
+        && ast.syntax().index() == 2;
+    // The `condition` part of an `RWhileStatement` is always the 3th node
+    // (index 2):
+    // WHILE_KW - L_PAREN - [condition] - R_PAREN - [consequence]
+    let parent_is_while = ast.syntax().parent().unwrap().kind() == RSyntaxKind::R_WHILE_STATEMENT
+        && ast.syntax().index() == 2;
+
+    if !parent_is_if && !parent_is_while {
+        return Ok(None);
+    }
 
     let mut left_is_class = false;
     let mut right_is_class = false;

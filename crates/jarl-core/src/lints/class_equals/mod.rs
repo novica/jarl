@@ -11,25 +11,7 @@ mod tests {
         let expected_message = "instead of comparing `class";
 
         expect_lint(
-            "is_regression <- class(x) == 'lm'",
-            expected_message,
-            "class_equals",
-            None,
-        );
-        expect_lint(
             "if (class(x) == 'character') 1",
-            expected_message,
-            "class_equals",
-            None,
-        );
-        expect_lint(
-            "is_regression <- 'lm' == class(x)",
-            expected_message,
-            "class_equals",
-            None,
-        );
-        expect_lint(
-            "is_regression <- \"lm\" == class(x)",
             expected_message,
             "class_equals",
             None,
@@ -53,19 +35,19 @@ mod tests {
             None,
         );
         expect_lint(
-            "x[if (class(x) == 'foo') 1 else 2]",
+            "while (class(x) != 'character') 1",
             expected_message,
             "class_equals",
             None,
         );
         expect_lint(
-            "class(foo(bar(y) + 1)) == 'abc'",
+            "x[if (class(x) == 'foo') 1 else 2]",
             expected_message,
             "class_equals",
             None,
         );
 
-        // No fixes because it is unsafe
+        // No fixes because we can't infer if it is correct or not.
         assert_snapshot!(
             "no_fix_output",
             get_fixed_text(
@@ -77,7 +59,7 @@ mod tests {
 
         assert_snapshot!(
             "fix_output",
-            get_unsafe_fixed_text(
+            get_fixed_text(
                 vec![
                     "is_regression <- class(x) == 'lm'",
                     "if (class(x) == 'character') 1",
@@ -86,10 +68,13 @@ mod tests {
                     "if ('character' %in% class(x)) 1",
                     "if (class(x) %in% 'character') 1",
                     "if (class(x) != 'character') 1",
+                    "while (class(x) != 'character') 1",
                     "x[if (class(x) == 'foo') 1 else 2]",
-                    "class(foo(bar(y) + 1)) == 'abc'",
+                    "if (class(foo(bar(y) + 1)) == 'abc') 1",
+                    "if (my_fun(class(x) != 'character')) 1",
                 ],
-                "class_equals"
+                "class_equals",
+                None
             )
         );
     }
@@ -97,7 +82,6 @@ mod tests {
     #[test]
     fn test_no_lint_class_equals() {
         expect_no_lint("class(x) <- 'character'", "class_equals", None);
-        expect_no_lint("class(x) = 'character'", "class_equals", None);
         expect_no_lint(
             "identical(class(x), c('glue', 'character'))",
             "class_equals",
@@ -105,8 +89,11 @@ mod tests {
         );
         expect_no_lint("all(sup %in% class(model))", "class_equals", None);
 
-        // TODO: https://github.com/etiennebacher/jarl/issues/32
-        // expect_no_lint("class(x)[class(x) == 'foo']", "class_equals");
+        // We cannot infer the use that will be made of this output, so we can't
+        // report it:
+        expect_no_lint("is_regression <- class(x) == 'lm'", "class_equals", None);
+        expect_no_lint("is_regression <- 'lm' == class(x)", "class_equals", None);
+        expect_no_lint("is_regression <- \"lm\" == class(x)", "class_equals", None);
     }
 
     #[test]
@@ -115,14 +102,14 @@ mod tests {
         // Should detect lint but skip fix when comments are present to avoid destroying them
         assert_snapshot!(
             "no_fix_with_comments",
-            get_unsafe_fixed_text(
+            get_fixed_text(
                 vec![
-                    "# leading comment\nclass(x) == 'lm'",
-                    "class(\n  # comment\n  x\n) == 'lm'",
-                    "# comment\nclass(x) == 'character'",
-                    "class(x) == 'lm' # trailing comment",
+                    "# leading comment\nif (class(x) == 'foo') 1",
+                    "if(\n  class(\n  # comment\nx) == 'foo'\n) 1",
+                    "if (class(x) == 'foo') 1 # trailing comment",
                 ],
-                "class_equals"
+                "class_equals",
+                None
             )
         );
     }

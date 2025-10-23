@@ -42,7 +42,7 @@ pub fn all_rules_and_safety() -> RuleTable {
     rule_table.enable("any_duplicated", "PERF", FixStatus::Safe, None);
     rule_table.enable("any_is_na", "PERF", FixStatus::Safe, None);
     rule_table.enable("assignment", "READ", FixStatus::Safe, None);
-    rule_table.enable("class_equals", "SUSP", FixStatus::Unsafe, None);
+    rule_table.enable("class_equals", "SUSP", FixStatus::Safe, None);
     rule_table.enable("coalesce", "READ", FixStatus::Safe, Some((4, 4, 0)));
     rule_table.enable("duplicated_arguments", "SUSP", FixStatus::None, None);
     rule_table.enable("empty_assignment", "READ", FixStatus::Safe, None);

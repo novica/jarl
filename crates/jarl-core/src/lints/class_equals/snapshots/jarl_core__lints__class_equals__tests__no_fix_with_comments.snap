@@ -1,41 +1,34 @@
 ---
 source: crates/jarl-core/src/lints/class_equals/mod.rs
-expression: "get_unsafe_fixed_text(vec![\"# leading comment\\nclass(x) == 'lm'\",\n\"class(\\n  # comment\\n  x\\n) == 'lm'\", \"# comment\\nclass(x) == 'character'\",\n\"class(x) == 'lm' # trailing comment\",], \"class_equals\")"
+expression: "get_fixed_text(vec![\"# leading comment\\nif (class(x) == 'foo') 1\",\n\"if(\\n  class(\\n  # comment\\nx) == 'foo'\\n) 1\",\n\"if (class(x) == 'foo') 1 # trailing comment\",], \"class_equals\", None)"
 ---
 OLD:
 ====
 # leading comment
-class(x) == 'lm'
+if (class(x) == 'foo') 1
 NEW:
 ====
 # leading comment
-inherits(x, 'lm')
+if (inherits(x, 'foo')) 1
 
 OLD:
 ====
-class(
+if(
+  class(
   # comment
-  x
-) == 'lm'
+x) == 'foo'
+) 1
 NEW:
 ====
-class(
+if(
+  class(
   # comment
-  x
-) == 'lm'
+x) == 'foo'
+) 1
 
 OLD:
 ====
-# comment
-class(x) == 'character'
+if (class(x) == 'foo') 1 # trailing comment
 NEW:
 ====
-# comment
-inherits(x, 'character')
-
-OLD:
-====
-class(x) == 'lm' # trailing comment
-NEW:
-====
-inherits(x, 'lm') # trailing comment
+if (inherits(x, 'foo')) 1 # trailing comment
