@@ -37,14 +37,14 @@ website:
     - text: Configuration
       href: config.md
     - text: Rules
-      href: rules.md
+      href: rules.qmd
     - text: Contributing
       href: contributing.md
   sidebar:
   - title: Rules
     style: floating
     contents:
-    - rules.md
+    - rules.qmd
     - section: Rules
       contents:
       - rules/all_equal.md

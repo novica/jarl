@@ -1,0 +1,73 @@
+## Overview
+
+All rules belong to at least one category:
+
+-   CORR: correctness, code that is outright wrong or useless.
+-   SUSP: suspicious, code that is most likely wrong or useless.
+-   PERF: performance, code that can be written to run faster.
+-   READ: readability, code is correct but can be written in a way that is easier to read.
+
+You can find the list of available rules below, and more detailed explanations and examples in pages in the sidebar.
+
+::: {.callout-note}
+## Comparison to `lintr`
+
+`lintr` includes many rules related to code formatting, such as [`brace_linter`](https://lintr.r-lib.org/dev/reference/brace_linter.html), [`line_length_linter`](https://lintr.r-lib.org/dev/reference/line_length_linter.html), and [`paren_body_linter`](https://lintr.r-lib.org/dev/reference/paren_body_linter.html), among others.
+
+**Supporting those rules is not an objective of Jarl.**
+Instead, I recommend using the [Air formatter](https://posit-dev.github.io/air/).
+:::
+
+The column "Has fix" can take the following values:
+
+-   ✅ Safe fix
+
+-   ❗ Unsafe fix
+
+-   ❌ No fix
+
+```{css, eval=TRUE, echo=FALSE}
+.tabulator, .tabulator-header, .tabulator-col, .tabulator-row, .tabulator-cell, .tabulator-table {
+	background-color: transparent !important;
+}
+
+.tabulator-header-filter > input {
+	background-color: transparent !important;
+}
+```
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE}
+library(tinytable)
+dat <- as.data.frame(
+  rbind(
+    c("all_equal", "Suspicious", "❗"),
+    c("any_duplicated", "Performance", "✅"),
+    c("any_is_na", "Performance", "✅"),
+    c("assignment", "Readability", "✅"),
+    c("class_equals", "Suspicious", "❗"),
+    c("coalesce", "Readability", "✅"),
+    c("duplicated_arguments", "Suspicious", "❌"),
+    c("empty_assignment", "Readability", "❌"),
+    c("equals_na", "Correctness", "✅"),
+    c("for_loop_index", "Readability", "❌"),
+    c("grepv", "Readability", "✅"),
+    c("implicit_assignment", "Readability", "❌"),
+    c("is_numeric", "Readability", "✅"),
+    c("length_levels", "Readability", "✅"),
+    c("length_test", "Correctness", "✅"),
+    c("lengths", "Performance, readability", "✅"),
+    c("matrix_apply", "Performance", "✅"),
+    c("numeric_leading_zero", "Readability", "✅"),
+    c("redundant_equals", "Readability", "✅"),
+    c("repeat", "Readability", "✅"),
+    c("sample_int", "Readability", "✅"),
+    c("sort", "Performance, readability", "✅"),
+    c("true_false_symbol", "Readability", "❌"),
+    c("which_grepl", "Performance, readability", "✅")
+  )
+)
+names(dat) <- c("Rule name", "Group", "Has fix")
+tt(dat) |>
+  format_tt(escape = TRUE) |> 
+  theme_html(engine = "tabulator", tabulator_search = "column")
+```
