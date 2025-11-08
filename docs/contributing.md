@@ -63,11 +63,10 @@ Adding a new rule requires four main steps:
 
 ## Integration tests
 
-When you add a new rule, it is usually sufficient to add tests in the directory of this rule only, e.g. in `src/lints/any_duplicated`.
-Some modifications affect the way user interact with Jarl as a whole.
-They may modify the command line arguments or change the arguments that can be set in `jarl/toml`.
+When you add a new rule, it is usually sufficient to add tests in the directory of this rule only, e.g. in `crates/jarl-core/src/lints/any_duplicated`.
 
-For those changes, it is important to check that the general behavior of Jarl is correct (check what happens when there are no R files, how TOML options and CLI arguments interact, etc.).
+However, in some cases you may affect the way users interact with Jarl as a whole, for instance by adding new command line arguments or arguments that can be set in `jarl.toml`. For those changes, it is important to check that the general behavior of Jarl is correct (check what happens when there are no R files, how TOML and CLI arguments interact, etc.).
+
 Tests for this are stored in `crates/jarl-cli/tests/integration`.
 It is likely that you will need to edit one of the files instead of creating a new one.
 For example, adding an extra argument in `crates/jarl-core/toml.rs` would require adding tests in `crates/jarl-cli/tests/integration/toml.rs`.
