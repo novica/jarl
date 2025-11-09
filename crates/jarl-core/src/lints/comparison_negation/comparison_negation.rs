@@ -3,6 +3,29 @@ use crate::utils::node_contains_comments;
 use air_r_syntax::*;
 use biome_rowan::AstNode;
 
+/// ## What it does
+///
+/// Checks for patterns similar to `!(... < ...)`.
+///
+/// ## Why is this bad?
+///
+/// This pattern may be hard to read and could be simplified by removing the `!`
+/// operator and inverting the operator (e.g. `<` would become `>=`).
+///
+/// This rule has a safe fix.
+///
+/// ## Example
+///
+/// ```r
+/// !(x < y + 1)
+/// !(x == y + 1)
+/// ```
+///
+/// Use instead:
+/// ```r
+/// x >= y + 1
+/// x != y + 1
+/// ```
 pub fn comparison_negation(ast: &RUnaryExpression) -> anyhow::Result<Option<Diagnostic>> {
     let operator = ast.operator()?;
 

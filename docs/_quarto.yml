@@ -55,6 +55,7 @@ website:
       - rules/assignment.md
       - rules/class_equals.md
       - rules/coalesce.md
+      - rules/comparison_negation.md
       - rules/duplicated_arguments.md
       - rules/equals_na.md
       - rules/for_loop_index.md

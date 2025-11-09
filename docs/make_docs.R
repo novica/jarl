@@ -49,7 +49,7 @@ doc_names <- sort(rule_names)
 quarto_yml <- read_yaml("docs/_quarto.yml")
 quarto_yml$website$sidebar[[1]]$contents <- list(
   "rules.qmd",
-  list(section = "Rules", contents = paste0("rules/", doc_names, ".md"))
+  list(section = "List of rules", contents = paste0("rules/", doc_names, ".md"))
 )
 quarto_yml$filters <- list("newpagelink.lua")
 write_yaml(
