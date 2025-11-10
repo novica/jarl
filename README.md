@@ -40,7 +40,7 @@ if (all.equal(x, y)) {
 }
 ```
 
-```sh
+```
 # In the terminal:
 $ jarl check test.R
 warning: any_is_na
