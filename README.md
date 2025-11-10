@@ -27,7 +27,9 @@ Jarl is built on [Air](https://posit-dev.github.io/air/), a fast formatter for R
 
 ## Quick start
 
-You can use Jarl via the command line.
+You can use Jarl manually via the command line, or use [extensions](https://jarl.etiennebacher.com/editors) to have it integrated in your coding environment.
+
+This shows how to use it in the terminal:
 
 `test.R`:
 ```r
@@ -39,6 +41,7 @@ if (all.equal(x, y)) {
 ```
 
 ```sh
+# In the terminal:
 $ jarl check test.R
 warning: any_is_na
  --> test.R:1:1
@@ -76,8 +79,6 @@ if (all.equal(x, y)) {
   print("x and y are equal")
 }
 ```
-
-Jarl can also be directly integrated in your coding environment, see [Editors](https://jarl.etiennebacher.com/editors).
 
 
 ## Installation
