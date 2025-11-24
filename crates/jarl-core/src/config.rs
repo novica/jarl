@@ -1,6 +1,6 @@
 use crate::{
     description::Description,
-    lints::{RULE_GROUPS, all_rules_and_safety},
+    lints::{DEFAULT_SELECTORS, RULE_GROUPS, all_rules_and_safety},
     rule_table::{FixStatus, Rule, RuleTable},
     settings::Settings,
 };
@@ -412,8 +412,18 @@ fn reconcile_rules(
         // No CLI select, but TOML select exists, use TOML
         toml_selected
     } else {
-        // Neither CLI nor TOML specified select rules, start with all rules
-        HashSet::from_iter(all_rules.iter().map(|x| x.name.clone()))
+        // Neither CLI nor TOML specified select rules, use DEFAULT_SELECTORS
+        let default_groups: HashSet<&str> = DEFAULT_SELECTORS.iter().copied().collect();
+        HashSet::from_iter(
+            all_rules
+                .iter()
+                .filter(|rule| {
+                    rule.categories
+                        .iter()
+                        .any(|cat| default_groups.contains(cat.as_str()))
+                })
+                .map(|x| x.name.clone()),
+        )
     };
 
     // Step 2: Combine all ignore rules (TOML + CLI)

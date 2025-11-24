@@ -37,6 +37,9 @@ pub(crate) mod which_grepl;
 
 pub static RULE_GROUPS: &[&str] = &["CORR", "PERF", "READ", "SUSP"];
 
+/// Rule groups that are selected by default when no selectors are provided
+pub static DEFAULT_SELECTORS: &[&str] = &["CORR", "PERF", "READ", "SUSP"];
+
 /// List of supported rules and whether they have a safe fix.
 ///
 /// Possible categories:
