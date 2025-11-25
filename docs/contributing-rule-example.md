@@ -164,7 +164,7 @@ Let's analyze this by blocks:
 
 If you explore other rules implementation, you might notice that the `impl Violation` block is sometimes missing.
 This is because in some cases, the message and/or the suggestion depend on the AST itself.
-For example, for the `assignment` rule, the message will contain recommend the use of `<-` or `=` depending on the user's settings.
+For example, for the `assignment` rule, the message will recommend the use of `<-` or `=` depending on the user settings.
 
 In this scenario, the name, body, and suggestion are defined at the very end, when we build the `Diagnostic`.
 :::
@@ -215,15 +215,14 @@ This function returns an `Option` since the arguments we want to extract maybe d
 
 In this example, we used `get_arg_by_name_then_position()`.
 There exist other helper functions located in `utils.rs`.
-For example, `get_nested_functions_content()` is very useful to get the content of nested functions.
-It is used in `any_is_na` (among other rules) to either get the content of `any(is.na(...))` or exit the function early.
+For example, `get_nested_functions_content()` is used in `any_is_na` (among other rules) to either get the content of `any(is.na(...))` or exit the function early.
 :::
 
 We can now do more early checks:
 
 ```rust
 // Ensure there isn't more than two arguments, as we probably cannot discard
-// `quote` and `envir` in `do.call()`.
+// `quote` and `envir` if they are specified in `do.call()`.
 if get_arg_by_position(&arguments, 3).is_some() {
     return Ok(None);
 }
@@ -232,6 +231,7 @@ if args.is_none() {
     return Ok(None);
 }
 
+// Return early for calls such as `do.call(foo, x)`.
 if let Some(what) = what && let Some(what_value) = what.value() {
     let txt = what_value.to_trimmed_text();
     // `do.call()` accepts quoted function names.
@@ -283,7 +283,7 @@ Ok(Some(diagnostic))
 
 All diagnostics contain a `Violation` (we defined the one for `List2Df` just below the documentation), a range indicating where it is located in the code, and a `Fix` (which may be `Fix::Empty()` if there is no automatic fix).
 
-Finally, note that `Fix` has a field `to_skip: node_contains_comments(ast.syntax())`. This tells Jarl not to apply the automatic fix if the node in question contains a comment. Handling comments positions in automatic fixes is quite complicated so, for now, fixes are not applied if the node contains comment, e.g.:
+Finally, note that `Fix` has a field `to_skip: node_contains_comments(ast.syntax())`. This tells Jarl not to apply the automatic fix if the node in question contains a comment. Handling comments positions in automatic fixes is quite complicated so, for now, fixes are not applied if the node contains a comment, e.g.:
 
 ```r
 # This code wouldn't be automatically fixed because we don't know where the
@@ -417,8 +417,7 @@ In this case, the PR is titled "feat: Add `list2df_linter`".
 Once you have opened a PR, you will receive three automated comments after a few minutes:
 
 - code coverage: this checks that all the lines you added are covered by some tests. Try to ensure this is at 100%.
-- ecosystem checks: every time there is a change in `jarl-core`, Jarl is run on several R packages and the results are compared to the Jarl version on the main branch. You will have a comment indicating if your changes have revealed new violations or removed some violations in those repositories. Here, since we added a rule, we expect either no changes or more violations. New violations will be printed with a link to the lines of code that trigger them, so check a few to ensure those are not false positives.
-- benchmark: this is usually irrelevant when adding a new rule, it is simply to ensure there's no catastrophic performance degradation.
-
+- ecosystem checks: every time there is a change in `jarl-core`, Jarl is run on several R packages and the results are compared to the Jarl version on the main branch. There will be a comment indicating if your changes have revealed new violations or removed some violations in those repositories. Here, we added a rule so we expect either no changes or more violations. New violations will be printed with a link to the lines of code that trigger them, so check a few to ensure those are not false positives.
+- benchmark: this is usually irrelevant when adding a new rule, it is simply to ensure there is no catastrophic performance degradation.
 
 Congrats, and thanks for your contribution!
